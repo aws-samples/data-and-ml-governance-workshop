@@ -1,0 +1,17 @@
+.DS_Store
+*.zip
+outputs
+ipynb_checkpoints
+sm-pr.code-workspace
+
+*.swp
+package-lock.json
+__pycache__
+.pytest_cache
+.venv
+env
+*.egg-info
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out

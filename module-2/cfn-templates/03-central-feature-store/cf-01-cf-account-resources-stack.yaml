@@ -1,0 +1,376 @@
+# cf-01-cf-account-resources-stack.yaml
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: cf-01-cf-account-resources-stack.yaml
+Parameters:
+  CentralFSDatabaseName:
+    Type: String
+    Default: sagemaker_featurestore
+
+  CentralGovernanceAWSAccountID:
+    Type: String
+
+
+  # CentralGovernanceLakeformationExecutionRole:
+  #     Type: String
+  #     Default: 'arn:aws:iam::954336505079:role/datamesh-central-governan-LFRegisterLocationServic-1MAGQXKBGBDAW'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: Data Lake Configuration
+        Parameters:
+          - LFRegisterLocationServiceRoleName
+          
+Resources:
+
+  SagemakerServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "sagemaker.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerFeatureStoreAccess
+      Policies:
+        -
+          PolicyName: !Sub "s3-central-featurestore-${AWS::Region}-${AWS::AccountId}-access-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:PutObject"
+                  - "s3:GetObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::central-featurestore-${AWS::AccountId}-${AWS::Region}/*"
+                  - !Sub "arn:aws:s3:::central-featurestore-${AWS::AccountId}-${AWS::Region}"
+
+  FeatureStoreLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "central-fs-lambda-role-${AWS::AccountId}-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFeatureStoreAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+
+  DataMeshProducerGlueServiceRole:
+    Type: AWS::IAM::Role
+    Properties :
+      RoleName: !Sub "central-fs-glue-role-${AWS::AccountId}-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version : 2012-10-17
+        Statement :
+          -
+            Effect : Allow
+            Principal :
+              Service :
+                - glue.amazonaws.com
+                - lakeformation.amazonaws.com
+            Action :
+              - sts:AssumeRole
+      Path: /    
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+
+  FeatureStoreKmsKey:
+     Type: 'AWS::KMS::Key'
+     Properties:
+       Description: Central Feature store Kms Key
+       KeyPolicy:
+         Version: '2012-10-17'
+         Id: FeatureStoreKmsKey
+         Statement:
+         - Sid: Enable IAM User Permissions
+           Effect: Allow
+           Principal:
+             AWS: 
+               Fn::Join:
+               - ''
+               - - 'arn:aws:iam::'
+                 - Ref: AWS::AccountId
+                 - :root
+           Action: kms:*
+           Resource: '*'
+         - Sid: Allow use of the key
+           Effect: Allow
+           Principal: 
+             AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+           Action:
+            - kms:DescribeKey
+            - kms:Encrypt
+            - kms:Decrypt
+            - kms:ReEncrypt*
+            - kms:GenerateDataKey
+            - kms:GenerateDataKeyWithoutPlaintext
+           Resource: '*' 
+         - Sid: Allow use of the key
+           Effect: Allow
+           Principal:
+             AWS:
+              #  - !Ref CentralGovernanceLakeformationExecutionRole
+               - !Sub 'arn:aws:iam::${CentralGovernanceAWSAccountID}:role/ml-governance-central-acct-lf-srv-role'
+               - !GetAtt SagemakerServiceRole.Arn
+               - !GetAtt DataMeshProducerGlueServiceRole.Arn
+           Action: kms:*
+           Resource: '*'
+
+
+  FeatureStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub central-featurestore-${AWS::AccountId}-${AWS::Region}
+      # BucketEncryption:
+      #   ServerSideEncryptionConfiguration: 
+      #     - ServerSideEncryptionByDefault:
+      #         # SSEAlgorithm: AES256
+      #         SSEAlgorithm: aws:kms
+      #         KMSMasterKeyID: !GetAtt FeatureStoreKmsKey.Arn
+      PublicAccessBlockConfiguration:
+          BlockPublicAcls: True
+          BlockPublicPolicy: True
+          IgnorePublicAcls: True
+          RestrictPublicBuckets: True
+      VersioningConfiguration:
+        Status: Enabled
+
+  FeatureStoreBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FeatureStoreBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: "Allow"
+            Resource:
+              - !Join ['', [!Sub 'arn:${AWS::Partition}:s3:::', !Ref FeatureStoreBucket, '/*']]
+              - !Join ['', [!Sub 'arn:${AWS::Partition}:s3:::', !Ref FeatureStoreBucket]]
+            Principal:
+              AWS:
+                # - !Ref CentralGovernanceLakeformationExecutionRole
+               - !Sub 'arn:aws:iam::${CentralGovernanceAWSAccountID}:role/ml-governance-central-acct-lf-srv-role'
+
+  S3DataLakePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "datamesh-producer-s3-access-policy"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - s3:*
+            Resource: 
+              - !Sub 'arn:aws:s3:::${FeatureStoreBucket}/*'
+              - !Sub 'arn:aws:s3:::${FeatureStoreBucket}'
+          -
+            Effect: "Allow"
+            Action:
+              - s3:ListBucket
+            Resource: '*'
+      Roles: 
+        - !Ref DataMeshProducerGlueServiceRole
+        - !Ref FeatureStoreLambdaExecutionRole
+        - !Ref SagemakerServiceRole
+
+  KMSPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "fs-kms-access-policy"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - kms:*
+            Resource: '*'
+      Roles: 
+        - !Ref SagemakerServiceRole
+
+  CentralFeatureGroup:
+    Type: AWS::SageMaker::FeatureGroup
+    DependsOn : [ FeatureStoreBucket, S3DataLakePolicy ]
+    Properties:
+      FeatureGroupName: 'fg-bank-marketing'
+      RecordIdentifierFeatureName: RecordIdentifier
+      EventTimeFeatureName: EventTime
+      Description: 'Central Feature Group'
+      RoleArn: !GetAtt SagemakerServiceRole.Arn
+      OfflineStoreConfig:
+        S3StorageConfig:
+          S3Uri: !Sub 's3://${FeatureStoreBucket}/feature-store'
+          KmsKeyId: !GetAtt FeatureStoreKmsKey.Arn
+        DisableGlueTableCreation: False 
+        
+      FeatureDefinitions:
+        - FeatureName: CustomerId
+          FeatureType: String
+        - FeatureName: EmpVarRate
+          FeatureType: Fractional
+        - FeatureName: ConsPriceIdx
+          FeatureType: Fractional
+        - FeatureName: ConsConfIdx
+          FeatureType: Fractional
+        - FeatureName: Euribor3m
+          FeatureType: Fractional
+        - FeatureName: NumberEmployed
+          FeatureType: Fractional
+        - FeatureName: RecordIdentifier
+          FeatureType: Integral
+        - FeatureName: EventTime
+          FeatureType: String
+          
+  CentralFSDBResourceLink:
+    Type: AWS::Glue::Database
+    DependsOn: CentralFeatureGroup
+    Properties: 
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Sub "rl_fs_${CentralFSDatabaseName}"
+        TargetDatabase:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          DatabaseName: !Ref CentralFSDatabaseName
+
+  FeatureStoreGlueCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+        Role: !GetAtt DataMeshProducerGlueServiceRole.Arn
+        Name: !Sub "central-fs-crawler-${AWS::AccountId}-${AWS::Region}"
+        DatabaseName: !Ref CentralFSDBResourceLink
+        Targets:
+          S3Targets:
+            - Path: !Sub '${FeatureStoreBucket}/feature-store/${AWS::AccountId}/sagemaker/${AWS::Region}/offline-store/'
+        Configuration: '{"Version":1.0,"Grouping":{"TableLevelConfiguration":7},"CreatePartitionIndex":false}'
+
+  FeatureStoreBankDataLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        ZipFile: !Sub |
+          import json
+          import boto3
+          import pandas as pd
+          import datetime
+          import os
+
+          s3_client = boto3.client('s3', region_name=os.environ['AWS_REGION'])
+          sm_client = boto3.client('sagemaker')
+          fs_client = boto3.client('sagemaker-featurestore-runtime')
+
+          def lambda_handler(event, context):
+              # TODO implement
+              bucket_name = os.environ['S3_Seed_Bucket']
+              file_name = os.environ['S3_Object']
+              SM_Feature_Grp = os.environ['SM_Feature_Group_Name']
+
+              # Download Data file
+              obj = s3_client.get_object(Bucket=bucket_name, Key=file_name)
+              print(obj['Body'])
+              df = pd.read_csv(obj['Body'])
+              df["ID"]= df.index + 1
+              df['ID'] = 'C' + df['ID'].astype(str)
+              print (df.head())
+
+              # Ingest data to Feature Store Group
+              for index, row in df.iterrows():
+                  print(f"Id: {row.ID}")
+                  fs_client.put_record(
+                  FeatureGroupName=SM_Feature_Grp,
+                  Record=[
+                      {
+                          'FeatureName': 'RecordIdentifier',
+                          'ValueAsString': str(index)
+                      },
+                      {
+                          'FeatureName': 'CustomerId',
+                          'ValueAsString': str(row.ID)
+                      },
+                      {
+                          'FeatureName': 'EmpVarRate',
+                          'ValueAsString': str(row['emp.var.rate'])
+                      },
+                      {
+                          'FeatureName': 'ConsPriceIdx',
+                          'ValueAsString': str(row['cons.price.idx'])
+                      },
+                      {
+                          'FeatureName': 'ConsConfIdx',
+                          'ValueAsString': str(row['cons.conf.idx'])
+                      },
+                      {
+                          'FeatureName': 'Euribor3m',
+                          'ValueAsString': str(row['euribor3m'])
+                      },
+                      {
+                          'FeatureName': 'NumberEmployed',
+                          'ValueAsString': str(row['nr.employed'])
+                      },
+                      {
+                          'FeatureName': 'EventTime',
+                          'ValueAsString': datetime.datetime.utcnow().isoformat()+'Z'
+                      },
+                  ],
+                  TargetStores=[
+                      'OfflineStore',
+                      ]
+                  )
+
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps('Success')
+              }
+      Handler: index.lambda_handler
+      Role : !GetAtt FeatureStoreLambdaExecutionRole.Arn
+      Runtime: python3.9
+      Timeout: 900
+      Environment:
+        Variables: 
+         S3_Seed_Bucket: !Ref FeatureStoreBucket
+         S3_Object: 'bank/bank-additional-full.csv'
+         SM_Feature_Group_Name: !Ref CentralFeatureGroup
+      Layers:
+        - 'arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:10'
+
+Outputs:
+
+  CentralFeatureStoreGlueServiceRole:
+    Value: !GetAtt   DataMeshProducerGlueServiceRole.Arn
+    Export:
+      Name: OCentralFeatureStoreGlueServiceRoleARN
+
+  SagemakerServiceRoleArn:
+    Value: !GetAtt SagemakerServiceRole.Arn
+    Export:
+      Name: OSagemakerServiceRoleArn
+
+  FeatureStoreBucket:
+    Value: !Ref FeatureStoreBucket
+    Export:
+      Name: OFeatureStoreBucket

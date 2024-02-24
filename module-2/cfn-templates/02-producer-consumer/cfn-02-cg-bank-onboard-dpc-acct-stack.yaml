@@ -1,0 +1,130 @@
+# cfn-02-cg-bank-onboard-data-producer-consumer-acct-stack
+# StackName: cfn-02-cg-bank-onboard-dpc-acct-stack
+AWSTemplateFormatVersion: 2010-09-09
+Description: This cfn-02-cg-bank-onboard-dpc-acct-stack.yaml Stack is onboarding new data producer&consumer stack into central governance account . stack  will be deployed in central governance account.
+
+Parameters:
+  DataProducerConsumerAccountID:
+    Type: String
+    Description: Provide the AWS account IDs for both Producer or Consumer onboarding.
+    Default: 035416884108
+    
+  BankDataLakeBucketName:
+    Type: String
+    Description: Provide the name of the S3 bucket for the Producer.
+    Default: ml-gov-bank-035416884108-us-east-1
+      
+Resources:
+
+  BankDataLakeBucketS3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${BankDataLakeBucketName}-s3-access-policy'
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - lakeformation:RegisterResource
+            Resource: 
+              - !Sub arn:aws:s3:::${BankDataLakeBucketName}
+          -
+            Effect: "Allow"
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource: 
+              - !Sub arn:aws:s3:::${BankDataLakeBucketName}/*
+          -
+            Effect: "Allow"
+            Action:
+              - s3:ListBucket
+            Resource: 
+              - !Sub arn:aws:s3:::${BankDataLakeBucketName}
+          -
+            Effect: "Allow"
+            Action:
+              - s3:ListBucket
+            Resource: '*'
+      Roles: 
+        - 'ml-governance-central-acct-lf-srv-role'
+      
+  LFDataLakeLocationBank:
+    Type: AWS::LakeFormation::Resource
+    Properties:
+      ResourceArn: !Sub arn:aws:s3:::${BankDataLakeBucketName}
+      RoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/ml-governance-central-acct-lf-srv-role"
+      UseServiceLinkedRole: false
+      
+  LFDataLocationPermissionBank:
+    DependsOn: LFDataLakeLocationBank
+    Type: AWS::LakeFormation::Permissions
+    Properties:
+      DataLakePrincipal:
+        DataLakePrincipalIdentifier: !Ref DataProducerConsumerAccountID
+      Permissions: 
+        - DATA_LOCATION_ACCESS
+      PermissionsWithGrantOption: 
+        - DATA_LOCATION_ACCESS
+      Resource:
+        DataLocationResource:
+          S3Resource: !Sub arn:aws:s3:::${BankDataLakeBucketName}
+
+  LFTagLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Ref DataProducerConsumerAccountID
+      Resource:
+        LFTag:
+          CatalogId: !Ref AWS::AccountId
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+            - ASSOCIATE
+      PermissionsWithGrantOption: 
+            - DESCRIBE
+            - ASSOCIATE
+
+  LFTagDataLakeTableLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Ref DataProducerConsumerAccountID
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref AWS::AccountId
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+            - ALL
+      PermissionsWithGrantOption: 
+            - ALL
+
+  LFTagDataLakeDBLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Ref DataProducerConsumerAccountID
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref AWS::AccountId
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - ALTER
+        - CREATE_TABLE
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - ALTER
+        - CREATE_TABLE
+        - DESCRIBE

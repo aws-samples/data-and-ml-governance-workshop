@@ -1,0 +1,240 @@
+# Granting Lakeformation permissions
+# StackName : cfn-03-pc-bank-dpc-lf-res-stack
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: cfn-03-pc-bank-dpc-lf-res-stack
+
+Parameters:
+  CentralGovernanceAWSAccountID:
+    Type: String
+    Description: Account Number of the Producer Account for sharing cross account access.
+    Default: 178074512278	
+
+Resources:
+# # LF Permissions to Glue Service Role
+  LFDataLocationPermissionBank:
+    Type: AWS::LakeFormation::Permissions
+    Properties:
+      DataLakePrincipal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+      Permissions: 
+        - DATA_LOCATION_ACCESS
+      PermissionsWithGrantOption: 
+        - DATA_LOCATION_ACCESS
+      Resource:
+        DataLocationResource:
+          S3Resource: !Sub arn:aws:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+
+  LFTagLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role 
+      Resource:
+        LFTag:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeDBLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - CREATE_TABLE
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeTableLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - ALTER
+        - DELETE
+        - DESCRIBE
+        - DROP
+        - INSERT
+        - SELECT
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFRLDatabasePermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+      Resource:
+        Database:
+          CatalogId: !Ref AWS::AccountId
+          Name: !Sub 'rl_fs_bankdb'
+      Permissions:
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+# LF Permissions to Sagemaker Service Role
+  LFTagLevelPermissionsSagemakerRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
+
+      Resource:
+        LFTag:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeDBLevelPermissionsSagemakerServiceRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - CREATE_TABLE
+        - ALTER
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeTableLevelPermissionsSagemakerServiceRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - ALTER
+        - DELETE
+        - DESCRIBE
+        - DROP
+        - INSERT
+        - SELECT
+      PermissionsWithGrantOption: 
+        - DESCRIBE         
+         
+# # LF Permissions to AthenaConsumerAssumeRole
+  LFTagLevelPermissionsAthenaConsumerAssumeRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+      Resource:
+        LFTag:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeDBLevelPermissionsAthenaConsumerAssumeRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - CREATE_TABLE
+        - ALTER
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeTableLevelPermissionsAthenaConsumerAssumeRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - ALTER
+        - DELETE
+        - DESCRIBE
+        - DROP
+        - INSERT
+        - SELECT
+      PermissionsWithGrantOption: 
+        - DESCRIBE         
+         
+  LFRLDatabasePermissionsAthenaConsumerAssumeRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+      Resource:
+        Database:
+          CatalogId: !Ref AWS::AccountId
+          Name: !Sub 'rl_fs_bankdb'
+      Permissions:
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+
+
+
+ 

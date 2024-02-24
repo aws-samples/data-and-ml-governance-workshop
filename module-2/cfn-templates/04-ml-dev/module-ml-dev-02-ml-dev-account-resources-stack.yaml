@@ -1,0 +1,118 @@
+# # ml-dev-02-cg-feature-consumer-<aws account id>ml-dev-02-ml-dev-feature-acct-954336505079
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: module-04-cf-02-ml-dev-account-resources-stack.yaml
+
+Parameters:
+
+  CentralFSDatabaseName:
+    Type: String
+    Description: Account Number of the Producer Account for sharing cross account access.
+    Default: sagemaker_featurestore
+
+  CentralGovernanceAWSAccountID:
+    Type: String
+    Description: Account Number of the Producer Account for sharing cross account access.
+    Default: 327366532232	
+
+Resources:
+  CentralFSDBResourceLink:
+    Type: AWS::Glue::Database
+    Properties: 
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Sub 'rl_fs_${CentralFSDatabaseName}'
+        TargetDatabase:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          DatabaseName: !Ref CentralFSDatabaseName
+
+  AthenaConsumerAssumeRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: AthenaConsumerAssumeRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+            Condition:
+              Bool:
+                aws:MultiFactorAuthPresent: 'true'
+        Path: "/"
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+
+  LFTagLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !GetAtt AthenaConsumerAssumeRole.Arn
+      Resource:
+        LFTag:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeDBLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !GetAtt AthenaConsumerAssumeRole.Arn
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeTableLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !GetAtt AthenaConsumerAssumeRole.Arn
+
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - DESCRIBE
+        - SELECT
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFRLDatabasePermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !GetAtt AthenaConsumerAssumeRole.Arn
+      Resource:
+        Database:
+          CatalogId: !Ref AWS::AccountId
+          Name: !Sub 'rl_fs_${CentralFSDatabaseName}'
+      Permissions:
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+
+
+

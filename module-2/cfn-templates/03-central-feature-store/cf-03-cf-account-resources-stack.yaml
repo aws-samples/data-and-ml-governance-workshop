@@ -1,0 +1,175 @@
+# Granting Lakeformation permissions
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Central account Lake Formation setups for cross-account sharing scenario
+
+Parameters:
+
+  CentralGovernanceDatabaseName:
+    Type: String
+    Description: Account Number of the Producer Account for sharing cross account access.
+    Default: sagemaker_featurestore
+
+  CentralGovernanceAWSAccountID:
+    Type: String
+    Description: Lakeformation Governace Account Number  for sharing cross account access.
+
+
+Resources:
+# LakeFormation
+  LFDataLocationPermissionBank:
+    Type: AWS::LakeFormation::Permissions
+    Properties:
+      DataLakePrincipal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+      Permissions: 
+        - DATA_LOCATION_ACCESS
+      PermissionsWithGrantOption: 
+        - DATA_LOCATION_ACCESS
+      Resource:
+        DataLocationResource:
+          S3Resource: !Sub arn:aws:s3:::central-featurestore-${AWS::AccountId}-${AWS::Region}
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+
+# LF Permissions to Glue Service Role
+  LFTagLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+      Resource:
+        LFTag:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeDBLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - CREATE_TABLE
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeTableLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - ALTER
+        - DELETE
+        - DESCRIBE
+        - DROP
+        - INSERT
+        - SELECT
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFRLDatabasePermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+      Resource:
+        Database:
+          CatalogId: !Ref AWS::AccountId
+          Name: !Sub 'rl_fs_${CentralGovernanceDatabaseName}'
+      Permissions:
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+# LF Permissions to Sagemaker Service Role
+  LFTagLevelPermissionsSagemakerRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        # DataLakePrincipalIdentifier: !Ref SagemakerServiceRoleArn
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
+
+      Resource:
+        LFTag:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeDBLevelPermissionsSagemakerServiceRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        # DataLakePrincipalIdentifier: !Ref SagemakerServiceRoleArn
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
+
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - CREATE_TABLE
+        - ALTER
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - DESCRIBE
+
+  LFTagDataLakeTableLevelPermissionsSagemakerServiceRole:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        # DataLakePrincipalIdentifier: !Ref SagemakerServiceRoleArn
+        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - ALTER
+        - DELETE
+        - DESCRIBE
+        - DROP
+        - INSERT
+        - SELECT
+      PermissionsWithGrantOption: 
+        - DESCRIBE         
+         
+
+
+

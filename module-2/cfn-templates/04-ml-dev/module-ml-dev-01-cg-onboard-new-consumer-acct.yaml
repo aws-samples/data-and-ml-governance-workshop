@@ -1,0 +1,85 @@
+# ml-dev-01-cg-feature-consumer-<aws account id>
+AWSTemplateFormatVersion: 2010-09-09
+Description: module-ml-dev-01-cg-onboard-new-consumer-acct.yaml
+
+Parameters:
+  ConsumerAWSAccount:
+    Type: String
+    Default: 068785734421
+
+  CentralFeatureStoreBucketName:
+    Type: String
+    Default: central-featurestore-658352330480-us-east-1
+
+Resources:
+
+  LFDataLocationPermissionBank:
+    Type: AWS::LakeFormation::Permissions
+    Properties:
+      DataLakePrincipal:
+        DataLakePrincipalIdentifier: !Ref ConsumerAWSAccount
+      Permissions: 
+        - DATA_LOCATION_ACCESS
+      PermissionsWithGrantOption: 
+        - DATA_LOCATION_ACCESS
+      Resource:
+        DataLocationResource:
+          S3Resource: !Sub arn:aws:s3:::${CentralFeatureStoreBucketName}
+
+  LFTagLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Ref ConsumerAWSAccount
+      Resource:
+        LFTag:
+          CatalogId: !Ref AWS::AccountId
+          TagKey: data
+          TagValues: 
+             - bank
+      Permissions: 
+            - DESCRIBE
+            - ASSOCIATE
+      PermissionsWithGrantOption: 
+            - DESCRIBE
+            - ASSOCIATE
+
+  LFTagDataLakeTableLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Ref ConsumerAWSAccount
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref AWS::AccountId
+          ResourceType: TABLE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+            - ALL
+      PermissionsWithGrantOption: 
+            - ALL
+
+  LFTagDataLakeDBLevelPermissions:
+    Type: AWS::LakeFormation::PrincipalPermissions
+    Properties:
+      Principal:
+        DataLakePrincipalIdentifier: !Ref ConsumerAWSAccount
+      Resource:
+        LFTagPolicy:
+          CatalogId: !Ref AWS::AccountId
+          ResourceType: DATABASE
+          Expression:
+          - TagKey: data
+            TagValues:
+            - bank
+      Permissions: 
+        - ALTER
+        - CREATE_TABLE
+        - DESCRIBE
+      PermissionsWithGrantOption: 
+        - ALTER
+        - CREATE_TABLE
+        - DESCRIBE

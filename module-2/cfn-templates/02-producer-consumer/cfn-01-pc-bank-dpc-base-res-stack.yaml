@@ -1,0 +1,174 @@
+# cf-01-cf-account-resources-stack.yaml
+# stackName: cfn-01-pc-bank-dpc-base-res-stack
+AWSTemplateFormatVersion: 2010-09-09
+Description: cfn-01-pc-bank-dpc-base-res-stack.yaml stack is data producer or consumer base stack - cfn-01-pc-bank-dpc-base-res-stack , will be deployed in  data producer and consumer account 
+
+Parameters:
+  CentralGovernanceAWSAccountID:
+    Type: String
+    Description : Specify AWS account ID for central governance account. 
+    Default: 178074512278	
+
+Resources:
+
+  AthenaConsumerAssumeRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: AthenaConsumerAssumeRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+        Path: "/"
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+
+  SagemakerServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ml-gov-sagemaker-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "sagemaker.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerFeatureStoreAccess
+      Policies:
+        -
+          PolicyName: !Sub "ml-gov-data-producer-consumer-${AWS::Region}-${AWS::AccountId}-acess-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:PutObject"
+                  - "s3:GetObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}/*"
+                  - !Sub "arn:aws:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}"
+
+  DataProducerGlueServiceRole:
+    Type: AWS::IAM::Role
+    Properties :
+      RoleName: !Sub "ml-gov-data-producer-consumer-glue-role"
+      AssumeRolePolicyDocument:
+        Version : 2012-10-17
+        Statement :
+          -
+            Effect : Allow
+            Principal :
+              Service :
+                - glue.amazonaws.com
+                - lakeformation.amazonaws.com
+            Action :
+              - sts:AssumeRole
+      Path: /    
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+
+
+
+
+
+  BankDataLakeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ml-gov-bank-${AWS::AccountId}-${AWS::Region}
+      PublicAccessBlockConfiguration:
+          BlockPublicAcls: True
+          BlockPublicPolicy: True
+          IgnorePublicAcls: True
+          RestrictPublicBuckets: True
+      VersioningConfiguration:
+        Status: Enabled
+
+  BankDataLakeBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BankDataLakeBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: "Allow"
+            Resource:
+              - !Join ['', [!Sub 'arn:${AWS::Partition}:s3:::', !Ref BankDataLakeBucket, '/*']]
+              - !Join ['', [!Sub 'arn:${AWS::Partition}:s3:::', !Ref BankDataLakeBucket]]
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${CentralGovernanceAWSAccountID}:role/ml-governance-central-acct-lf-srv-role'
+
+  S3DataLakePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "datamesh-producer-s3-access-policy"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - s3:*
+            Resource: 
+              - !Sub 'arn:aws:s3:::${BankDataLakeBucket}/*'
+              - !Sub 'arn:aws:s3:::${BankDataLakeBucket}'
+          -
+            Effect: "Allow"
+            Action:
+              - s3:ListBucket
+            Resource: '*'
+      Roles: 
+        - !Ref DataProducerGlueServiceRole
+        - !Ref SagemakerServiceRole
+
+  BankDBResourceLink:
+    Type: AWS::Glue::Database
+    Properties: 
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: rl_fs_bankdb
+        TargetDatabase:
+          CatalogId: !Ref CentralGovernanceAWSAccountID
+          DatabaseName: bankdb
+
+  BankDatasetGlueCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+        Role: !GetAtt DataProducerGlueServiceRole.Arn
+        Name: !Sub "bank-dataset-crawler-${AWS::AccountId}-${AWS::Region}"
+        DatabaseName: !Ref BankDBResourceLink
+        Targets:
+          S3Targets:
+            - Path: !Sub '${BankDataLakeBucket}/datasets/bank/'
+        # Configuration: '{"Version":1.0,"Grouping":{"TableLevelConfiguration":7},"CreatePartitionIndex":false}'
+
+Outputs:
+
+  DataMeshProducerGlueServiceRoleArn:
+    Value: !GetAtt DataProducerGlueServiceRole.Arn
+    Export:
+      Name: DataMeshProducerGlueServiceRoleArn
+
+  SagemakerServiceRoleArn:
+    Value: !GetAtt SagemakerServiceRole.Arn
+    Export:
+      Name: SagemakerServiceRoleArn
+
+  BankDataLakeBucket:
+    Value: !Ref BankDataLakeBucket
+    Export:
+      Name: BankDataLakeBucketName
