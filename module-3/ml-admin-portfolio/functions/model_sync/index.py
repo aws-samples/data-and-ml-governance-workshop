@@ -160,17 +160,23 @@ def lambda_handler(event, context: LambdaContext):
     assert isinstance(new_model_package, Dict)  # fix type linting errors
 
     try:
-        response = sagemaker_client.create_model_package(
+        create_model_package_input = dict(
             ModelPackageGroupName=target_model_package_group,
             InferenceSpecification=new_model_package["InferenceSpecification"],
             ModelApprovalStatus="PendingManualApproval",
-            ModelMetrics=new_model_package.get("ModelMetrics", None),
             ModelPackageDescription=new_model_package.get(
                 "ModelPackageDescription", ""
             ),
             CustomerMetadataProperties={"OriginalARN": source_model_package_arn},
         )
 
+        if model_metrics := new_model_package.get("ModelMetrics", None):
+            create_model_package_input = {
+                **create_model_package_input,
+                "ModelMetrics": model_metrics,
+            }
+
+        response = sagemaker_client.create_model_package(**create_model_package_input)
         package_arn = response["ModelPackageArn"]
 
     except ClientError as e:
