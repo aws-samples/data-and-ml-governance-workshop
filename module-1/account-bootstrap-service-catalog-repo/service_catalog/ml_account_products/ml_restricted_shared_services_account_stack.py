@@ -35,6 +35,7 @@ class MLRestrictedSharedServicesInfraStack(servicecatalog.ProductStack):
             type="String",
             description="S3 bucket where data are stored",
             default="sagemaker-s3-bucket",
+            maxLength=30,
         ).value_as_string
 
         vpc_secondary_cidr = CfnParameter(
