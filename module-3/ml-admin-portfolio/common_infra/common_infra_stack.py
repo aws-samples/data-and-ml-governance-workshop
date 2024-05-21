@@ -141,7 +141,8 @@ class CommonInfraStack(cdk.Stack):
         self,
         scope: Construct,
         construct_id: str,
-        ml_org_id: str,
+        ml_workloads_ou_id: str,
+        ml_workloads_org_path: str,
         ml_deployment_org_id: str,
         ml_deployment_org_path: str,
         **kwargs
@@ -160,7 +161,11 @@ class CommonInfraStack(cdk.Stack):
                 actions=["events:PutEvents"],
                 principals=[iam.AnyPrincipal()],
                 resources=[ml_central_event_bus.event_bus_arn],
-                conditions={"StringEquals": {"aws:PrincipalOrgID": ml_org_id}},
+                conditions={
+                    "ForAnyValue:StringLike": {
+                        "aws:PrincipalOrgPaths": ml_workloads_org_path
+                    }
+                },
             )
         )
 
@@ -172,7 +177,7 @@ class CommonInfraStack(cdk.Stack):
         ModelSyncConstruct(
             self,
             "ModelSync",
-            ml_org_id=ml_org_id,
+            ml_org_id=ml_workloads_ou_id,
             ml_deployment_org_path=ml_deployment_org_path,
             ml_central_event_bus=ml_central_event_bus,
         )
@@ -198,7 +203,7 @@ class CommonInfraStack(cdk.Stack):
                 )
             ),
             target=StackSetTarget.from_organizational_units(
-                regions=[region], organizational_units=[ml_org_id]
+                regions=[region], organizational_units=[ml_workloads_ou_id]
             ),
             deployment_type=DeploymentType.service_managed(
                 auto_deploy_enabled=True,

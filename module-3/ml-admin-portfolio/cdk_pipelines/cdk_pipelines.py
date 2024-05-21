@@ -24,13 +24,15 @@ class MLCommonInfra(Stage):
         super().__init__(scope, construct_id, **kwargs)
 
         ml_workloads_ou_id = self.node.try_get_context("MLWorkloadsOUId")
+        ml_workloads_org_path = self.node.try_get_context("MLWorkloadsOrgPath") 
         ml_deployment_org_id = self.node.try_get_context("MLDeploymentOUId")
         ml_deployment_org_path = self.node.try_get_context("MLDeploymentOrgPath")
 
         _ = CommonInfraStack(
             self,
             "CommonInfra",
-            ml_org_id=ml_workloads_ou_id,
+            ml_workloads_ou_id=ml_workloads_ou_id,
+            ml_workloads_org_path=ml_workloads_org_path,
             ml_deployment_org_id=ml_deployment_org_id,
             ml_deployment_org_path=ml_deployment_org_path,
         )
