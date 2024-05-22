@@ -224,10 +224,6 @@ class CommonInfraStack(cdk.Stack):
                 regions=[region],
                 organizational_units=[ml_deployment_org_id],
                 exclude_accounts=[central_account_id],
-                parameter_overrides={
-                    "TrustedAccounts": ",".join([central_account_id]),
-                    "CloudFormationExecutionPolicies": "arn:aws:iam::aws:policy/AdministratorAccess",  # TODO: reduce scope of CFN deployment role in spoke account
-                },
             ),
             deployment_type=DeploymentType.service_managed(auto_deploy_enabled=True),
             capabilities=[Capability.NAMED_IAM],
