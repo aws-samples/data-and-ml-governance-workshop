@@ -190,6 +190,8 @@ class DeployEndpointStack(Stack):
 
         # Sagemaker Endpoint Config
         endpoint_config_name = f"{MODEL_PACKAGE_GROUP_NAME}-ec-{timestamp}"
+        if len(endpoint_config_name) > 63:
+            endpoint_config_name = endpoint_config_name[:62]
 
         endpoint_config_production_variant = EndpointConfigProductionVariant()
 
@@ -233,7 +235,7 @@ class DeployEndpointStack(Stack):
         endpoint = sagemaker.CfnEndpoint(
             self,
             "Endpoint",
-            endpoint_config_name=endpoint_config.endpoint_config_name, # type: ignore
+            endpoint_config_name=endpoint_config.endpoint_config_name,  # type: ignore
             endpoint_name=endpoint_name,
         )
 
