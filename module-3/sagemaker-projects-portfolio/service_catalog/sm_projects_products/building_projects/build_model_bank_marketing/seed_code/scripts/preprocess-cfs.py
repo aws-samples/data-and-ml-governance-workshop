@@ -52,33 +52,49 @@ s3_output_bucket = f"s3://{arguments.default_bucket}/query_results/"
 
 # Reading job parameters
 job_params = read_parameters()
+sm_session = sagemaker.Session()
 
 source_via_feature_group = job_params["source_via_feature_group"]
+if source_via_feature_group:
+    feature_group = job_params["feature_group_arn"]
+    bank_market_fg = FeatureGroup(name=feature_group, sagemaker_session=sm_session)
+    bm_query = bank_market_fg.athena_query()
+    glue_table = bm_query.table_name
+    glue_database = bm_query.database
+    print(f"Reading from Athena; database.table :{glue_database}.{glue_table}")
+    # Database resource link shared with development starts with rl_fs
+    sql = f'SELECT * FROM "rl_fs_{glue_database}"."{glue_table}"'
+    bm_query.run(query_string=sql, output_location=s3_output_bucket)
+    bm_query.wait()
+    model_data = bm_query.as_dataframe()
+else:
+    # read config parameters
+    s3_bucket = job_params["s3_data_bucket"]
+    s3_path = job_params["s3_data_file"]
+    print(
+        f"Reading from s3 bucket :{s3_bucket}, csv file:{s3_path}"
+    )
+    input_base = "./input/"
+    os.mkdir(input_base)
+    input_csv = input_base + "full-orig.csv"
+    s3 = boto3.client("s3")
+    s3.download_file(s3_bucket, "{}".format(s3_path), input_csv)
+    model_data = pd.read_csv(input_csv, sep=",", header=0)
 
-# read config parameters
-s3_bucket = job_params["s3_data_bucket"]
-s3_path = job_params["s3_data_file"]
-print(
-    f"Reading from s3 bucket :{s3_bucket}, csv file:{s3_path}"
+# Feature prep - drop the Duration, as it was post-facto data
+model_data = model_data.drop(
+    labels=[
+        "write_time",
+        "eventtime",
+        "api_invocation_time",
+        "customerid",
+        "partition_0",
+    ],
+    axis="columns",
 )
-input_base = "./input/"
-os.mkdir(input_base)
-input_csv = input_base + "full-orig.csv"
-s3 = boto3.client("s3")
-s3.download_file(s3_bucket, "{}".format(s3_path), input_csv)
-model_data = pd.read_csv(input_csv, sep=",", header=0)
-
-# Feature prep - select cols
-model_data = model_data[['nr.employed', 'emp.var.rate', 'cons.conf.idx', 'euribor3m', 'cons.price.idx']]
-
-# rename cols
-model_data = model_data.rename(columns={'nr.employed': 'NumberEmployed', 'emp.var.rate': 'EmpVarRate', 'cons.conf.idx': 'ConsConfIdx', 'euribor3m': 'Euribor3m', 'cons.price.idx': 'ConsPriceIdx'})
-
-
 
 # One hot encode categorical variables
 model_data = pd.get_dummies(model_data)
-
 # print(model_data.head(5))
 # encode True/False to 1/0
 bool_cols = model_data.select_dtypes(include=["bool"]).columns
