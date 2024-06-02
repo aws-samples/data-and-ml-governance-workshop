@@ -162,20 +162,6 @@ def athena_wait_for_job_completion(queryId, athena_client):
     
     return response_query_result
 
-def copy_every_3rd_row(input_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Copy every 3rd record in the input dataframe to the output dataframe.
-
-    Args:
-        input_df (pd.DataFrame): The input dataframe
-
-    Returns:
-        pd.DataFrame: The output dataframe with every 3rd row copied
-    """
-    output_df = input_df.copy()  # Create a copy of the input dataframe
-    output_df = output_df.iloc[2::3, :]  # Select every 3rd row starting from the 3rd row (index 2)
-    return output_df
-
 def results_to_df(results):
     columns = [
         col['Label']
