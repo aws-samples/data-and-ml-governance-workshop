@@ -18,63 +18,53 @@
 # import argparse
 import argparse
 import os
-
+import logging
+import pathlib
 import boto3 as boto3
 import numpy as np
 import pandas as pd
 import sagemaker
 import yaml
+
 from sagemaker.feature_store.feature_group import FeatureGroup
 
+# preprocess data from ML DEV account's s3  (i.e local S3)
+# user uploads bank marketing to local s3 bucket(specified in input_data arg)
+
 boto3.set_stream_logger("boto3.resources", boto3.logging.INFO)
-print("prepare_data.py START #")
+print("preprocess-s3.py START #")
 
-
-def read_parameters():
-    """
-    Reads job parameters configured.
-    Returns:
-        (Namespace): read parameters
-    """
-    with open("/opt/ml/processing/input/code/scripts/job-config.yml", "r") as f:
-        params = yaml.safe_load(f)
-
-    return params
-
+logger = logging.getLogger(__name__)
 
 # read from arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--default_bucket", type=str, dest="default_bucket")
-arguments = parser.parse_args()
-print("arguments", arguments)
+parser.add_argument("--input-data", type=str, required=True)
+args = parser.parse_args()
+print("arguments", args)
 
-s3_output_bucket = f"s3://{arguments.default_bucket}/query_results/"
+s3_output_bucket = f"s3://{args.default_bucket}/query_results/"
 
-# Reading job parameters
-job_params = read_parameters()
+base_dir = "/opt/ml/processing"
+pathlib.Path(f"{base_dir}/data").mkdir(parents=True, exist_ok=True)
+input_data = args.input_data
+bucket = input_data.split("/")[2]
+key = "/".join(input_data.split("/")[3:])
 
-source_via_feature_group = job_params["source_via_feature_group"]
+logger.info("Downloading data from bucket: %s, key: %s", bucket, key)
+fn = f"{base_dir}/data/bank-additional.csv"
+s3 = boto3.resource("s3")
+s3.Bucket(bucket).download_file(key, fn)
 
-# read config parameters
-s3_bucket = job_params["s3_data_bucket"]
-s3_path = job_params["s3_data_file"]
-print(
-    f"Reading from s3 bucket :{s3_bucket}, csv file:{s3_path}"
-)
-input_base = "./input/"
-os.mkdir(input_base)
-input_csv = input_base + "full-orig.csv"
-s3 = boto3.client("s3")
-s3.download_file(s3_bucket, "{}".format(s3_path), input_csv)
-model_data = pd.read_csv(input_csv, sep=",", header=0)
+model_data = pd.read_csv(fn, sep=",", header=0)
+
+os.unlink(fn)
 
 # Feature prep - select cols
 model_data = model_data[['nr.employed', 'emp.var.rate', 'cons.conf.idx', 'euribor3m', 'cons.price.idx']]
 
 # rename cols
 model_data = model_data.rename(columns={'nr.employed': 'NumberEmployed', 'emp.var.rate': 'EmpVarRate', 'cons.conf.idx': 'ConsConfIdx', 'euribor3m': 'Euribor3m', 'cons.price.idx': 'ConsPriceIdx'})
-
-
 
 # One hot encode categorical variables
 model_data = pd.get_dummies(model_data)

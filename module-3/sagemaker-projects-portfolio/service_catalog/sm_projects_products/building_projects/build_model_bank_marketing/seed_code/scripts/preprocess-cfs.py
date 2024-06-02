@@ -18,17 +18,19 @@
 # import argparse
 import argparse
 import os
-
+import time
 import boto3 as boto3
 import numpy as np
 import pandas as pd
 import sagemaker
 import yaml
-from sagemaker.feature_store.feature_group import FeatureGroup
+
+# preprocess data from CFS account via Central Governanc(CG) account
+# centralfeaturestore glue db exists in CG account and accessed via LF remote link
+
 
 boto3.set_stream_logger("boto3.resources", boto3.logging.INFO)
-print("prepare_data.py START #")
-
+print("preprocess-cfs.py START #")
 
 def read_parameters():
     """
@@ -41,6 +43,8 @@ def read_parameters():
 
     return params
 
+# Reading job parameters
+job_params = read_parameters()
 
 # read from arguments
 parser = argparse.ArgumentParser()
@@ -50,51 +54,51 @@ print("arguments", arguments)
 
 s3_output_bucket = f"s3://{arguments.default_bucket}/query_results/"
 
-# Reading job parameters
-job_params = read_parameters()
-sm_session = sagemaker.Session()
+model_data = []
 
-source_via_feature_group = job_params["source_via_feature_group"]
-if source_via_feature_group:
-    feature_group = job_params["feature_group_arn"]
-    bank_market_fg = FeatureGroup(name=feature_group, sagemaker_session=sm_session)
-    bm_query = bank_market_fg.athena_query()
-    glue_table = bm_query.table_name
-    glue_database = bm_query.database
-    print(f"Reading from Athena; database.table :{glue_database}.{glue_table}")
-    # Database resource link shared with development starts with rl_fs
-    sql = f'SELECT * FROM "rl_fs_{glue_database}"."{glue_table}"'
-    bm_query.run(query_string=sql, output_location=s3_output_bucket)
-    bm_query.wait()
-    model_data = bm_query.as_dataframe()
-else:
-    # read config parameters
-    s3_bucket = job_params["s3_data_bucket"]
-    s3_path = job_params["s3_data_file"]
-    print(
-        f"Reading from s3 bucket :{s3_bucket}, csv file:{s3_path}"
-    )
-    input_base = "./input/"
-    os.mkdir(input_base)
-    input_csv = input_base + "full-orig.csv"
-    s3 = boto3.client("s3")
-    s3.download_file(s3_bucket, "{}".format(s3_path), input_csv)
-    model_data = pd.read_csv(input_csv, sep=",", header=0)
+sts_client = boto3.client('sts')
+accountId = sts_client.get_caller_identity()["Account"]
 
-# Feature prep - drop the Duration, as it was post-facto data
-model_data = model_data.drop(
-    labels=[
-        "write_time",
-        "eventtime",
-        "api_invocation_time",
-        "customerid",
-        "partition_0",
-    ],
-    axis="columns",
+
+# Call the assume_role method of the STSConnection object and pass the role
+# ARN and a role session name.
+assumed_role_object=sts_client.assume_role(
+    RoleArn="arn:aws:iam::" +accountId + ":role/AthenaConsumerAssumeRole",
+    RoleSessionName="AssumeRoleSession1"
 )
+
+# From the response that contains the assumed role, get the temporary 
+# credentials that can be used to make subsequent API calls
+credentials=assumed_role_object['Credentials']
+
+# Use the temporary credentials that AssumeRole returns to make a 
+# connection to Amazon S3  
+athena_resource=boto3.client(
+    'athena',
+    aws_access_key_id=credentials['AccessKeyId'],
+    aws_secret_access_key=credentials['SecretAccessKey'],
+    aws_session_token=credentials['SessionToken'],
+)
+
+# Use the Amazon S3 resource object that is now configured with the 
+# credentials to access your S3 buckets. 
+
+feature_group_arn = job_params["feature_group_arn"]
+output_location = 's3://sagemaker-' +accountId +'-mlops'
+
+response = athena_resource.start_query_execution(
+            QueryString='SELECT * FROM "rl_fs_centralfeaturestore"."' + feature_group_arn + '" limit 10;',
+            QueryExecutionContext={'Database': 'rl_fs_centralfeaturestore'},
+            ResultConfiguration={"OutputLocation": output_location}
+        )
+
+qid = response.get('QueryExecutionId')
+athenaResults = athena_wait_for_job_completion(qid, athena_resource) # type: ignore
+model_data = results_to_df(athenaResults) # type: ignore
 
 # One hot encode categorical variables
 model_data = pd.get_dummies(model_data)
+
 # print(model_data.head(5))
 # encode True/False to 1/0
 bool_cols = model_data.select_dtypes(include=["bool"]).columns
@@ -135,4 +139,62 @@ train_data.to_csv(train_path + "/train.csv", index=False, header=None)
 val_data.to_csv(val_path + "/validation.csv", index=False, header=None)
 test_data.to_csv(test_path + "/test.csv", index=False, header=None)
 
-print("prepare_data.py END")
+print("preprocess-cfs.py END")
+
+#utility functions
+
+def athena_wait_for_job_completion(queryId, athena_client):
+
+    state = "RUNNING"
+    response_query_result=''
+
+    while True:
+        time.sleep(1)
+        query_details = athena_client.get_query_execution(
+            QueryExecutionId=queryId
+        )
+        state = query_details['QueryExecution']['Status']['State']
+        if state == 'SUCCEEDED':
+            response_query_result = athena_client.get_query_results(
+                QueryExecutionId=queryId
+            )
+            break
+    
+    return response_query_result
+
+def copy_every_3rd_row(input_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Copy every 3rd record in the input dataframe to the output dataframe.
+
+    Args:
+        input_df (pd.DataFrame): The input dataframe
+
+    Returns:
+        pd.DataFrame: The output dataframe with every 3rd row copied
+    """
+    output_df = input_df.copy()  # Create a copy of the input dataframe
+    output_df = output_df.iloc[2::3, :]  # Select every 3rd row starting from the 3rd row (index 2)
+    return output_df
+
+def results_to_df(results):
+    columns = [
+        col['Label']
+        for col in results['ResultSet']['ResultSetMetadata']['ColumnInfo']
+    ]
+    listed_results = []
+    for res in results['ResultSet']['Rows'][1:]:
+     values = []
+     for field in res['Data']:
+        try:
+            values.append(list(field.values())[0])
+        except:
+            values.append(list(' '))
+        listed_results.append(
+            dict(zip(columns, values))
+            )
+    df = pd.DataFrame(listed_results)
+    dfo = copy_every_3rd_row(df)
+    
+    return dfo
+
+

@@ -80,6 +80,8 @@ def get_pipeline(
     model_package_group_name="BankMarketing",
     pipeline_name="model-build-bank-marketing",
     base_job_prefix="bank-marketing",
+    bucket_kms_id=None,
+    project_id="SageMakerProjectId",
 ):
     """Gets a SageMaker ML Pipeline instance working with on abalone data.
 
@@ -138,6 +140,13 @@ def get_pipeline(
         sagemaker_session=pipeline_session,
     )
 
+    sts_client = boto3.client('sts')
+    accountId = sts_client.get_caller_identity()["Account"]
+    
+    default_bucket = f"sagemaker-{accountId}-mlops"
+
+    input_data = f"s3://sagemaker-{accountId}-mlops/ml-workshop-module4/input/bank-additional.csv"
+
     prepare_step = ProcessingStep(
         name="PreprocessData",
         step_args=sklearn_processor.run(
@@ -145,7 +154,7 @@ def get_pipeline(
             outputs=[output_train, output_validation, output_test],
             code="preprocess.py",
             source_dir="scripts",
-            arguments=["--default_bucket", default_bucket],
+            arguments=["--default_bucket", default_bucket, "--input-data", input_data],
         ),
         cache_config=cache_config,
     )
