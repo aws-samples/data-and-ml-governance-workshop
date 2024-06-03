@@ -1,4 +1,3 @@
-base_dest: /opt/ml/processing/
 region: us-east-1
 #if source athena true, data is read from glue table
 source_via_athena: true
