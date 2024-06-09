@@ -35,12 +35,9 @@ BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 class MLOpsStack(sc.ProductStack):
     DESCRIPTION: str = (
-        "This template includes creates a model building pipeline "
-        "that includes a workflow to pre-process, train, "
-        "evaluate and register a model."
-        "This model uses a central Feature Store to obtain all the necessary datasets"
+        "Use S3 datasource - preprocess, train, register model build pipline"
     )
-    TEMPLATE_NAME: str = "Build loan default from central Feature Store - MLOps template for model training and building SageMaker Pipeline"
+    TEMPLATE_NAME: str = "Build bank marketing model - MLOps template for preprocess, train and register model using S3 data"
 
     @classmethod
     def get_description(cls) -> str:
@@ -73,6 +70,18 @@ class MLOpsStack(sc.ProductStack):
             max_length=16,
             description="Service generated Id of the project.",
         ).value_as_string
+
+        
+
+        s3_object_key = aws_cdk.CfnParameter(
+            self,
+            "S3ObjectKey",
+            type="String",
+            min_length=1,
+            max_length=50,
+            description="Your S3 dataset object key in bucket sageamerk-<accountid>-mlops",
+        ).value_as_string
+
 
         tooling_account = aws_cdk.CfnParameter(
             self,
@@ -256,4 +265,5 @@ class MLOpsStack(sc.ProductStack):
             model_package_group_name=model_package_group_name,
             repository=build_app_repository,
             s3_artifact=s3_artifact,
+            build_env={"ToolingAccount":tooling_account,"S3ObjectKey":s3_object_key}
         )
