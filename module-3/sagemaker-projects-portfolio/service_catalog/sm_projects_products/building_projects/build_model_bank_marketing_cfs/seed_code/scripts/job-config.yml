@@ -1,9 +1,10 @@
+base_dest: /opt/ml/processing/
 region: us-east-1
 #if source athena true, data is read from glue table
 source_via_athena: true
 source_via_feature_group: false
 #replace with glue database and table arn if source_via_athena is true, after product deployment.
-feature_group_arn: <replace with central feature group arn>
+feature_group_arn: fg_bank_marketing_1716488483
 #if source athena and feature group False, data is read from s3 bucket
 s3_data_bucket: <replace with data s3 bucket name > 
 s3_data_file: <replace with path to the bank marketing data csv>

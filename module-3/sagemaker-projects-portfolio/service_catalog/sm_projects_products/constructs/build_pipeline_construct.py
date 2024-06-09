@@ -36,6 +36,7 @@ class BuildPipelineConstruct(Construct):
         pipeline_artifact_bucket: s3.IBucket,
         model_package_group_name: str,
         repository: codecommit.Repository,
+         build_env: dict | None = None,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -73,7 +74,46 @@ class BuildPipelineConstruct(Construct):
             mutable=False,
         )
 
-        assert s3_artifact.encryption_key is not None # resolve ambiguity in encryption key type
+
+        environment_variables = {
+            "SAGEMAKER_PROJECT_NAME": codebuild.BuildEnvironmentVariable(
+                value=project_name
+            ),
+            "SAGEMAKER_PROJECT_ID": codebuild.BuildEnvironmentVariable(
+                value=project_id
+            ),
+            "MODEL_PACKAGE_GROUP_NAME": codebuild.BuildEnvironmentVariable(
+                value=model_package_group_name
+            ),
+            "AWS_REGION": codebuild.BuildEnvironmentVariable(value=Aws.REGION),
+            "SAGEMAKER_PIPELINE_NAME": codebuild.BuildEnvironmentVariable(
+                value=pipeline_name,
+            ),
+            "SAGEMAKER_PIPELINE_DESCRIPTION": codebuild.BuildEnvironmentVariable(
+                value=pipeline_description,
+            ),
+            "SAGEMAKER_PIPELINE_ROLE_ARN": codebuild.BuildEnvironmentVariable(  # TODO: replace with SageMakerSDK configuration file
+                value=sagemaker_execution_role.role_arn,
+            ),
+            "ARTIFACT_BUCKET": codebuild.BuildEnvironmentVariable(  # TODO: replace with SageMakerSDK configuration file
+                value=s3_artifact.bucket_name
+            ),
+            "ARTIFACT_BUCKET_KMS_ID": codebuild.BuildEnvironmentVariable(  # TODO: replace with SageMakerSDK configuration file
+                value=s3_artifact.encryption_key.key_id
+            ),
+        }
+
+        if build_env:
+            project_build_env = {
+                k: codebuild.BuildEnvironmentVariable(value=o) for k, o in build_env.items()
+            }
+
+            environment_variables = {**environment_variables, **project_build_env}
+
+        assert (
+            s3_artifact.encryption_key is not None
+        )  # resolve ambiguity in encryption key type
+        
         sm_pipeline_build = codebuild.PipelineProject(
             self,
             "SMPipelineBuild",
@@ -82,35 +122,11 @@ class BuildPipelineConstruct(Construct):
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=codebuild.LinuxArmBuildImage.AMAZON_LINUX_2_STANDARD_3_0,
-                environment_variables={
-                    "SAGEMAKER_PROJECT_NAME": codebuild.BuildEnvironmentVariable(
-                        value=project_name
-                    ),
-                    "SAGEMAKER_PROJECT_ID": codebuild.BuildEnvironmentVariable(
-                        value=project_id
-                    ),
-                    "MODEL_PACKAGE_GROUP_NAME": codebuild.BuildEnvironmentVariable(
-                        value=model_package_group_name
-                    ),
-                    "AWS_REGION": codebuild.BuildEnvironmentVariable(value=Aws.REGION),
-                    "SAGEMAKER_PIPELINE_NAME": codebuild.BuildEnvironmentVariable(
-                        value=pipeline_name,
-                    ),
-                    "SAGEMAKER_PIPELINE_DESCRIPTION": codebuild.BuildEnvironmentVariable(
-                        value=pipeline_description,
-                    ),
-                    "SAGEMAKER_PIPELINE_ROLE_ARN": codebuild.BuildEnvironmentVariable( # TODO: replace with SageMakerSDK configuration file
-                        value=sagemaker_execution_role.role_arn,
-                    ),
-                    "ARTIFACT_BUCKET": codebuild.BuildEnvironmentVariable(  # TODO: replace with SageMakerSDK configuration file
-                        value=s3_artifact.bucket_name
-                    ),
-                    "ARTIFACT_BUCKET_KMS_ID": codebuild.BuildEnvironmentVariable( # TODO: replace with SageMakerSDK configuration file
-                        value=s3_artifact.encryption_key.key_id
-                    ),
-                },
+                environment_variables=environment_variables,
             ),
         )
+
+       
 
         source_artifact = codepipeline.Artifact(artifact_name="GitSource")
 

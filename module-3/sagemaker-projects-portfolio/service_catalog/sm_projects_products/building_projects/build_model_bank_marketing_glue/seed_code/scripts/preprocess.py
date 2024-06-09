@@ -25,9 +25,11 @@ import numpy as np
 import pandas as pd
 import sagemaker
 import yaml
+import awswrangler as wr
 
-# preprocess data from ML DEV account's s3  (i.e local S3)
-# user uploads bank marketing to local s3 bucket(specified in input_data arg)
+from sagemaker.feature_store.feature_group import FeatureGroup
+
+# preprocess data from ML DEV account using central glue table  
 
 boto3.set_stream_logger("boto3.resources", boto3.logging.INFO)
 print("preprocess-s3.py START #")
@@ -37,26 +39,50 @@ logger = logging.getLogger(__name__)
 # read from arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--default_bucket", type=str, dest="default_bucket")
-parser.add_argument("--input_data", type=str, required=True)
 args = parser.parse_args()
 print("arguments", args)
 
 s3_output_bucket = f"s3://{args.default_bucket}/query_results/"
 
-base_dir = "/opt/ml/processing"
-pathlib.Path(f"{base_dir}/data").mkdir(parents=True, exist_ok=True)
-input_data = args.input_data
-bucket = input_data.split("/")[2]
-key = "/".join(input_data.split("/")[3:])
 
-logger.info("Downloading data from bucket: %s, key: %s", bucket, key)
-fn = f"{base_dir}/data/bank-additional.csv"
-s3 = boto3.resource("s3")
-s3.Bucket(bucket).download_file(key, fn)
+sts_client = boto3.client('sts')
+accountId = sts_client.get_caller_identity()["Account"]
 
-model_data = pd.read_csv(fn, sep=",", header=0)
 
-os.unlink(fn)
+# Call the assume_role method of the STSConnection object and pass the role
+# ARN and a role session name.
+assumed_role_object=sts_client.assume_role(
+    RoleArn="arn:aws:iam::" +accountId + ":role/AthenaConsumerAssumeRole",
+    RoleSessionName="AssumeRoleSession1"
+)
+
+# From the response that contains the assumed role, get the temporary 
+# credentials that can be used to make subsequent API calls
+credentials=assumed_role_object['Credentials']
+
+
+boto3_session = boto3.Session(aws_access_key_id=credentials['AccessKeyId'], 
+                           aws_secret_access_key=credentials['SecretAccessKey'], 
+                           aws_session_token=credentials['SessionToken'], region_name="us-east-1")
+
+query='SELECT * FROM "rl_bankdb"."bank"'
+
+try:
+    # Retrieving the data from Amazon Athena
+    model_data = wr.athena.read_sql_query(
+        query,
+        database='rl_bankdb',
+        boto3_session=boto3_session,
+        ctas_approach=False,
+        keep_files=False
+    )
+
+    print("Query completed, data retrieved successfully!")
+except Exception as e:
+    print(f"Something went wrong... the error is:{e}")
+    raise Exception(e)
+
+
 
 # Feature prep - select cols
 model_data = model_data[['nr.employed', 'emp.var.rate', 'cons.conf.idx', 'euribor3m', 'cons.price.idx']]

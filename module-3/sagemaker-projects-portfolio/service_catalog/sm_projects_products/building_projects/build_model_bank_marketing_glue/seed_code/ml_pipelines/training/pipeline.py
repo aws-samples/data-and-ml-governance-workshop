@@ -15,18 +15,18 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Bank Marketing SM Pipeline for process data from S3, train and register model.
+"""Example workflow pipeline script for bank marketing build pipeline.
 
                                                . -RegisterModel
                                               .
-    Process-> Train -> Register .
+    Process-> Train -> Evaluate -> Condition .
                                               .
                                                . -(stop)
 
 Implements a get_pipeline(**kwargs) method.
 """
 import logging
-import os
+
 import boto3
 import sagemaker
 import sagemaker.session
@@ -85,6 +85,9 @@ def get_pipeline(
     pipeline_name="model-build-bank-marketing",
     base_job_prefix="bank-marketing",
     bucket_kms_id=None,
+    data_access_type=None,
+    s3_object_key=None,
+    fg_name=None,
 ):
     """Gets a SageMaker ML Pipeline instance working with on abalone data.
 
@@ -147,9 +150,6 @@ def get_pipeline(
     accountId = sts_client.get_caller_identity()["Account"]
     default_bucket = f"sagemaker-{accountId}-mlops"
 
-    s3_object_key = os.environ.get('S3ObjectKey')
-
-    input_data = f"s3://sagemaker-{accountId}-mlops/{s3_object_key}"
 
     prepare_step = ProcessingStep(
         name="PreprocessData",
@@ -158,11 +158,10 @@ def get_pipeline(
             outputs=[output_train, output_validation, output_test],
             code="preprocess.py",
             source_dir="scripts",
-            arguments=["--default_bucket", default_bucket, "--input_data", input_data],
+            arguments=["--default_bucket", default_bucket],
         ),
         cache_config=cache_config,
     )
-    
 
     # The XGBoot training step:
     xgboost_container = sagemaker.image_uris.retrieve("xgboost", region, "latest")
