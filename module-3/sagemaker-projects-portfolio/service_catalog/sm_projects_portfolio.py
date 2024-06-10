@@ -36,7 +36,7 @@ class ServiceCatalogSmProjects(Stack):
         central_bucket_policy = iam.PolicyStatement(
             actions=["s3:Get*"],
             resources=[sc_product_artifact_bucket.arn_for_objects("*")],
-            principals=[iam.AnyPrincipal()],
+            principals=[iam.AnyPrincipal()], # type: ignore
             conditions={
                 "ForAnyValue:StringLike": {
                     "aws:PrincipalOrgPaths": [ml_workloads_org_path]
