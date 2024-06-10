@@ -34,38 +34,41 @@ parser.add_argument("--default_bucket", type=str, dest="default_bucket")
 parser.add_argument("--fg-name", type=str, required=True)
 args = parser.parse_args()
 print("arguments", args)
-feature_group = args.fg-name
+feature_group = args.fg - name
 s3_output_bucket = f"s3://{arguments.default_bucket}/query_results/"
 
-sts_client = boto3.client('sts')
+sts_client = boto3.client("sts")
 accountId = sts_client.get_caller_identity()["Account"]
 
 # Call the assume_role method of the STSConnection object and pass the role
 # ARN and a role session name.
-assumed_role_object=sts_client.assume_role(
-    RoleArn="arn:aws:iam::" +accountId + ":role/AthenaConsumerAssumeRole",
-    RoleSessionName="AssumeRoleSession1"
+assumed_role_object = sts_client.assume_role(
+    RoleArn="arn:aws:iam::" + accountId + ":role/AthenaConsumerAssumeRole",
+    RoleSessionName="AssumeRoleSession1",
 )
 
-# From the response that contains the assumed role, get the temporary 
+# From the response that contains the assumed role, get the temporary
 # credentials that can be used to make subsequent API calls
-credentials=assumed_role_object['Credentials']
+credentials = assumed_role_object["Credentials"]
 
 
-boto3_session = boto3.Session(aws_access_key_id=credentials['AccessKeyId'], 
-                           aws_secret_access_key=credentials['SecretAccessKey'], 
-                           aws_session_token=credentials['SessionToken'], region_name="us-east-1")
+boto3_session = boto3.Session(
+    aws_access_key_id=credentials["AccessKeyId"],
+    aws_secret_access_key=credentials["SecretAccessKey"],
+    aws_session_token=credentials["SessionToken"],
+    region_name="us-east-1",
+)
 
-query='SELECT * FROM "rl_centralfeaturestore"."' +feature_group +'"'
+query = 'SELECT * FROM "rl_centralfeaturestore"."' + feature_group + '"'
 
 try:
     # Retrieving the data from Amazon Athena
     model_data = wr.athena.read_sql_query(
         query,
-        database='rl_centralfeaturestore',
+        database="rl_centralfeaturestore",
         boto3_session=boto3_session,
         ctas_approach=False,
-        keep_files=False
+        keep_files=False,
     )
 
     print("Query completed, data retrieved successfully!")

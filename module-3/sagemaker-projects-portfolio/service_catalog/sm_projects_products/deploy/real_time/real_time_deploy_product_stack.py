@@ -26,10 +26,10 @@ from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
 from aws_cdk import custom_resources as cr
 from constructs import Construct
-from service_catalog.sm_projects_products.constructs.deploy_pipeline_construct import (
+from service_catalog.sm_projects_products.deploy.constructs.deploy_pipeline_construct import (
     DeployPipelineConstruct,
 )
-from service_catalog.sm_projects_products.constructs.ssm_construct import SSMConstruct
+from service_catalog.sm_projects_products.deploy.constructs.ssm_construct import SSMConstruct
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -42,7 +42,7 @@ class MLOpsStack(sc.ProductStack):
         "and production endpoint as infrastructure as code. The PREPROD/PROD accounts "
         "need to be cdk bootstrapped in advance to have the right CloudFormation "
         "execution cross account roles. The SageMaker Model Registry and associated ecr"
-        " and s3 artefacts need to have the right cross account policies."
+        " and s3 artifacts need to have the right cross account policies."
     )
 
     TEMPLATE_NAME: str = (
@@ -176,7 +176,7 @@ class MLOpsStack(sc.ProductStack):
                     principals=[
                         iam.ArnPrincipal(f"arn:aws:iam::{preprod_account}:root"),
                         iam.ArnPrincipal(f"arn:aws:iam::{prod_account}:root"),
-                    ],
+                    ], # type: ignore
                 ),
                 iam.PolicyStatement(
                     sid="ModelPackage",
@@ -192,7 +192,7 @@ class MLOpsStack(sc.ProductStack):
                     principals=[
                         iam.ArnPrincipal(f"arn:aws:iam::{preprod_account}:root"),
                         iam.ArnPrincipal(f"arn:aws:iam::{prod_account}:root"),
-                    ],
+                    ], # type: ignore
                 ),
             ]
         ).to_json()

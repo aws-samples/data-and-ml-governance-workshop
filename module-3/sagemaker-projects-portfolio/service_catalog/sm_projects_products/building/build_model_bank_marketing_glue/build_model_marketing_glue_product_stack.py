@@ -26,7 +26,7 @@ from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sagemaker as sagemaker
 from aws_cdk import aws_servicecatalog as sc
 from constructs import Construct
-from service_catalog.sm_projects_products.constructs.build_pipeline_construct import (
+from service_catalog.sm_projects_products.building_projects.constructs.build_pipeline_construct import (
     BuildPipelineConstruct,
 )
 
@@ -35,9 +35,10 @@ BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 class MLOpsStack(sc.ProductStack):
     DESCRIPTION: str = (
-        "Use S3 datasource - preprocess, train, register model build pipline"
+        "Use central glue datasource - preprocess, train, register model build pipeline"
     )
-    TEMPLATE_NAME: str = "Build bank marketing model - MLOps template for preprocess, train and register model using S3 data"
+    TEMPLATE_NAME: str = "Build bank marketing model - MLOps template for preprocess, train and register model using Central Glue Table"
+
 
     @classmethod
     def get_description(cls) -> str:
@@ -69,17 +70,6 @@ class MLOpsStack(sc.ProductStack):
             min_length=1,
             max_length=16,
             description="Service generated Id of the project.",
-        ).value_as_string
-
-        
-
-        s3_object_key = aws_cdk.CfnParameter(
-            self,
-            "S3ObjectKey",
-            type="String",
-            min_length=1,
-            max_length=50,
-            description="Your S3 dataset object key in bucket sageamerk-<accountid>-mlops",
         ).value_as_string
 
 
@@ -117,7 +107,7 @@ class MLOpsStack(sc.ProductStack):
                         actions=["kms:*"],
                         effect=iam.Effect.ALLOW,
                         resources=["*"],
-                        principals=[iam.AccountRootPrincipal()],
+                        principals=[iam.AccountRootPrincipal()], # type: ignore
                     )
                 ]
             ),
@@ -138,7 +128,7 @@ class MLOpsStack(sc.ProductStack):
                 ],
                 principals=[
                     iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                ],
+                ], # type: ignore
             )
         )
 
@@ -163,7 +153,7 @@ class MLOpsStack(sc.ProductStack):
                 ],
                 principals=[
                     iam.ArnPrincipal(f"arn:aws:iam::{Aws.ACCOUNT_ID}:root"),
-                ],
+                ], # type: ignore
             )
         )
 
@@ -178,7 +168,7 @@ class MLOpsStack(sc.ProductStack):
                 ],
                 principals=[
                     iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                ],
+                ], # type: ignore
             )
         )
 
@@ -197,7 +187,7 @@ class MLOpsStack(sc.ProductStack):
                     ],
                     principals=[
                         iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                    ],
+                    ], # type: ignore
                 ),
                 iam.PolicyStatement(
                     sid="ModelPackage",
@@ -212,7 +202,7 @@ class MLOpsStack(sc.ProductStack):
                     ],
                     principals=[
                         iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                    ],
+                    ], # type: ignore
                 ),
             ]
         ).to_json()
@@ -240,7 +230,7 @@ class MLOpsStack(sc.ProductStack):
                         actions=["kms:*"],
                         effect=iam.Effect.ALLOW,
                         resources=["*"],
-                        principals=[iam.AccountRootPrincipal()],
+                        principals=[iam.AccountRootPrincipal()], # type: ignore
                     )
                 ]
             ),
@@ -265,5 +255,4 @@ class MLOpsStack(sc.ProductStack):
             model_package_group_name=model_package_group_name,
             repository=build_app_repository,
             s3_artifact=s3_artifact,
-            build_env={"ToolingAccount":tooling_account,"S3ObjectKey":s3_object_key}
         )
