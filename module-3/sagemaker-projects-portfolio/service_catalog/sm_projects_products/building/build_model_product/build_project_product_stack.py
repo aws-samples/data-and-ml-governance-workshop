@@ -39,7 +39,7 @@ class MLOpsStack(sc.ProductStack):
         "evaluate and register a model."
     )
     TEMPLATE_NAME: str = (
-        "Build only - MLOps template for model training and building SageMaker Pipeline."
+        "Build only - MLOps template for model training and building SageMaker Pipeline"
     )
 
     @classmethod

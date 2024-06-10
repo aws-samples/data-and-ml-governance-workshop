@@ -38,7 +38,7 @@ class MLOpsStack(sc.ProductStack):
         "Use central glue datasource - preprocess, train, register model build pipeline"
     )
     TEMPLATE_NAME: str = (
-        "Build bank marketing model - MLOps template for preprocess, train and register model using Central Glue Table"
+        "Bank marketing model - MLOps template train model using Central Glue Table"
     )
 
     @classmethod

@@ -38,7 +38,7 @@ class MLOpsStack(sc.ProductStack):
         "Use central feature store datasource - preprocess, train, register model build pipeline"
     )
     TEMPLATE_NAME: str = (
-        "Build bank marketing model - MLOps template for preprocess, train and register model using Central Feature Store data"
+        "Bank marketing model - MLOps template to train model using Central Feature Store data"
     )
 
     @classmethod

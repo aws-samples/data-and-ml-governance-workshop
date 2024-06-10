@@ -38,7 +38,7 @@ class MLOpsStack(sc.ProductStack):
         "Use S3 datasource - preprocess, train, register model build pipeline"
     )
     TEMPLATE_NAME: str = (
-        "Build bank marketing model - MLOps template for preprocess, train and register model using S3 data"
+        "Bank marketing model - MLOps template for preprocess, train and register model using S3 data"
     )
 
     @classmethod
