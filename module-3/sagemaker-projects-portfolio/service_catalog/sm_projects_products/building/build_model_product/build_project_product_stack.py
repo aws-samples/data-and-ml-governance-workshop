@@ -25,7 +25,7 @@ from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sagemaker as sagemaker
 from aws_cdk import aws_servicecatalog as sc
 from constructs import Construct
-from service_catalog.sm_projects_products.constructs.build_pipeline_construct import (
+from service_catalog.sm_projects_products.building.constructs.build_pipeline_construct import (
     BuildPipelineConstruct,
 )
 
@@ -38,7 +38,9 @@ class MLOpsStack(sc.ProductStack):
         "that includes a workflow to pre-process, train, "
         "evaluate and register a model."
     )
-    TEMPLATE_NAME: str = "Build only - MLOps template for model training and building SageMaker Pipeline."
+    TEMPLATE_NAME: str = (
+        "Build only - MLOps template for model training and building SageMaker Pipeline."
+    )
 
     @classmethod
     def get_description(cls) -> str:
@@ -47,7 +49,6 @@ class MLOpsStack(sc.ProductStack):
     @classmethod
     def get_template_name(cls) -> str:
         return cls.TEMPLATE_NAME
-
 
     def __init__(
         self,
@@ -104,7 +105,6 @@ class MLOpsStack(sc.ProductStack):
         # Grant X-account access to the tooling account
         s3_artifact.grant_read(iam.AccountPrincipal(tooling_account))
 
-
         model_package_group_name = f"{project_name}-{project_id}"
 
         # cross account model registry resource policy
@@ -156,7 +156,7 @@ class MLOpsStack(sc.ProductStack):
             self,
             "PipelineBucket",
             bucket_name=f"pipeline-{project_id}-{Aws.ACCOUNT_ID}",
-            encryption=s3.BucketEncryption.KMS, # TODO: is a managed key a requirement for codebuild pipeline artifact bucket?
+            encryption=s3.BucketEncryption.KMS,  # TODO: is a managed key a requirement for codebuild pipeline artifact bucket?
             versioned=True,
             removal_policy=aws_cdk.RemovalPolicy.DESTROY,
             enforce_ssl=True,

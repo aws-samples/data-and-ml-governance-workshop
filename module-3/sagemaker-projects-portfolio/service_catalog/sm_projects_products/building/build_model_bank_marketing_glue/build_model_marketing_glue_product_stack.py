@@ -26,7 +26,7 @@ from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sagemaker as sagemaker
 from aws_cdk import aws_servicecatalog as sc
 from constructs import Construct
-from service_catalog.sm_projects_products.building_projects.constructs.build_pipeline_construct import (
+from service_catalog.sm_projects_products.building.constructs.build_pipeline_construct import (
     BuildPipelineConstruct,
 )
 
