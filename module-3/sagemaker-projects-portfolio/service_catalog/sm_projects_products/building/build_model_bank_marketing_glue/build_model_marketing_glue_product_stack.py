@@ -77,14 +77,7 @@ class MLOpsStack(sc.ProductStack):
             description="Service generated Id of the project.",
         ).value_as_string
 
-        tooling_account = aws_cdk.CfnParameter(
-            self,
-            "ToolingAccount",
-            type="String",
-            min_length=11,
-            max_length=13,
-            description="Id of tooling/shared services account where model can be copied",
-        ).value_as_string
+        tooling_account = os.getenv("CDK_DEFAULT_ACCOUNT")
 
         Tags.of(self).add("sagemaker:project-id", project_id)
         Tags.of(self).add("sagemaker:project-name", project_name)

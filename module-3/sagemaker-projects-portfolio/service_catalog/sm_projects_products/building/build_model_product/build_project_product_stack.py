@@ -120,7 +120,7 @@ class MLOpsStack(sc.ProductStack):
                     ],
                     principals=[
                         iam.AccountPrincipal(tooling_account),
-                    ],
+                    ], # type: ignore
                 ),
                 iam.PolicyStatement(
                     sid="ModelPackage",
@@ -135,7 +135,7 @@ class MLOpsStack(sc.ProductStack):
                     ],
                     principals=[
                         iam.AccountPrincipal(tooling_account),
-                    ],
+                    ], # type: ignore
                 ),
             ]
         ).to_json()
