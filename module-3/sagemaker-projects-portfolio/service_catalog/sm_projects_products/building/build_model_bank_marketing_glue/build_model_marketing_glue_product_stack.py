@@ -37,12 +37,17 @@ class MLOpsStack(sc.ProductStack):
     DESCRIPTION: str = (
         "Use central glue datasource - preprocess, train, register model build pipeline"
     )
-    TEMPLATE_NAME: str = "Build bank marketing model - MLOps template for preprocess, train and register model using Central Glue Table"
-
+    TEMPLATE_NAME: str = (
+        "Build bank marketing model - MLOps template for preprocess, train and register model using Central Glue Table"
+    )
 
     @classmethod
     def get_description(cls) -> str:
         return cls.DESCRIPTION
+
+    @classmethod
+    def get_template_name(cls) -> str:
+        return cls.TEMPLATE_NAME
 
     def __init__(
         self,
@@ -71,7 +76,6 @@ class MLOpsStack(sc.ProductStack):
             max_length=16,
             description="Service generated Id of the project.",
         ).value_as_string
-
 
         tooling_account = aws_cdk.CfnParameter(
             self,
@@ -107,7 +111,7 @@ class MLOpsStack(sc.ProductStack):
                         actions=["kms:*"],
                         effect=iam.Effect.ALLOW,
                         resources=["*"],
-                        principals=[iam.AccountRootPrincipal()], # type: ignore
+                        principals=[iam.AccountRootPrincipal()],  # type: ignore
                     )
                 ]
             ),
@@ -128,7 +132,7 @@ class MLOpsStack(sc.ProductStack):
                 ],
                 principals=[
                     iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                ], # type: ignore
+                ],  # type: ignore
             )
         )
 
@@ -153,7 +157,7 @@ class MLOpsStack(sc.ProductStack):
                 ],
                 principals=[
                     iam.ArnPrincipal(f"arn:aws:iam::{Aws.ACCOUNT_ID}:root"),
-                ], # type: ignore
+                ],  # type: ignore
             )
         )
 
@@ -168,7 +172,7 @@ class MLOpsStack(sc.ProductStack):
                 ],
                 principals=[
                     iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                ], # type: ignore
+                ],  # type: ignore
             )
         )
 
@@ -187,7 +191,7 @@ class MLOpsStack(sc.ProductStack):
                     ],
                     principals=[
                         iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                    ], # type: ignore
+                    ],  # type: ignore
                 ),
                 iam.PolicyStatement(
                     sid="ModelPackage",
@@ -202,7 +206,7 @@ class MLOpsStack(sc.ProductStack):
                     ],
                     principals=[
                         iam.ArnPrincipal(f"arn:aws:iam::{tooling_account}:root"),
-                    ], # type: ignore
+                    ],  # type: ignore
                 ),
             ]
         ).to_json()
@@ -230,7 +234,7 @@ class MLOpsStack(sc.ProductStack):
                         actions=["kms:*"],
                         effect=iam.Effect.ALLOW,
                         resources=["*"],
-                        principals=[iam.AccountRootPrincipal()], # type: ignore
+                        principals=[iam.AccountRootPrincipal()],  # type: ignore
                     )
                 ]
             ),
