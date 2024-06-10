@@ -665,6 +665,24 @@ tomlkit = ["tomlkit (>=0.11.8)"]
 ujson = ["ujson (>=5.7.0)"]
 
 [[package]]
+name = "cdk-nag"
+version = "2.28.139"
+description = "Check CDK v2 applications for best practices using a combination on available rule packs."
+optional = false
+python-versions = "~=3.8"
+files = [
+    {file = "cdk-nag-2.28.139.tar.gz", hash = "sha256:bc4fe90ae0b5f516457b802af1e4b0546d3322f8a53f467a31af1935d994f377"},
+    {file = "cdk_nag-2.28.139-py3-none-any.whl", hash = "sha256:8c5614e86e758452326faed93860e28d53727880b61792973b5b11ec0b5c93fa"},
+]
+
+[package.dependencies]
+aws-cdk-lib = ">=2.116.0,<3.0.0"
+constructs = ">=10.0.5,<11.0.0"
+jsii = ">=1.99.0,<2.0.0"
+publication = ">=0.0.3"
+typeguard = ">=2.13.3,<2.14.0"
+
+[[package]]
 name = "cdk-stacksets"
 version = "0.0.149"
 description = "cdk-stacksets"
@@ -2146,4 +2164,4 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-it
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5325c6e69daedf49f530a707832f79de5819d9dbf95591c464ae8b2a557b8a88"
+content-hash = "dcb090e89f9263426baf473a3f978985072b22cc3bad3ee71a951f8c50655bb8"
