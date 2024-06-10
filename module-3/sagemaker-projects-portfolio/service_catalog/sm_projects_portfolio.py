@@ -36,7 +36,7 @@ class ServiceCatalogSmProjects(Stack):
         central_bucket_policy = iam.PolicyStatement(
             actions=["s3:Get*"],
             resources=[sc_product_artifact_bucket.arn_for_objects("*")],
-            principals=[iam.AnyPrincipal()],
+            principals=[iam.AnyPrincipal()], # type: ignore
             conditions={
                 "ForAnyValue:StringLike": {
                     "aws:PrincipalOrgPaths": [ml_workloads_org_path]
@@ -107,14 +107,14 @@ class ServiceCatalogSmProjects(Stack):
             portfolio=portfolio_build,
             launch_role=launch_role,
             sc_product_artifact_bucket=sc_product_artifact_bucket,
-            templates_directory="service_catalog/sm_projects_products/building_projects",
+            templates_directory="service_catalog/sm_projects_products/building",
         )
 
         self.add_all_products(
             portfolio=portfolio_deploy,
             launch_role=launch_role,
             sc_product_artifact_bucket=sc_product_artifact_bucket,
-            templates_directory="service_catalog/sm_projects_products/deploy_projects",
+            templates_directory="service_catalog/sm_projects_products/deploy",
         )
 
     def add_all_products(

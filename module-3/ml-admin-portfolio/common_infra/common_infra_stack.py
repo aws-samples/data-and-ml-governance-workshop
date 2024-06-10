@@ -80,7 +80,7 @@ class DevSpokeInfra(StackSetStack):
                         target_event_bus_arn,
                     )
                 )
-            ],
+            ], # type: ignore
         )
 
         # Roles for Sagemaker Projects
@@ -159,7 +159,7 @@ class CommonInfraStack(cdk.Stack):
             iam.PolicyStatement(
                 sid="OrganizationPutEvents",
                 actions=["events:PutEvents"],
-                principals=[iam.AnyPrincipal()],
+                principals=[iam.AnyPrincipal()], # type: ignore
                 resources=[ml_central_event_bus.event_bus_arn],
                 conditions={
                     "ForAnyValue:StringLike": {

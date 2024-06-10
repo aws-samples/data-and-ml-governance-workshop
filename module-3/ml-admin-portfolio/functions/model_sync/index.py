@@ -176,7 +176,7 @@ def lambda_handler(event, context: LambdaContext):
                 "ModelMetrics": model_metrics,
             }
 
-        response = sagemaker_client.create_model_package(**create_model_package_input)
+        response = sagemaker_client.create_model_package(**create_model_package_input) # type: ignore
         package_arn = response["ModelPackageArn"]
 
     except ClientError as e:
