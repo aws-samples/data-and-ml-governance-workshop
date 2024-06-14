@@ -5,12 +5,12 @@ from aws_cdk import (
     CfnOutput,
 )
 from constructs import Construct
-from service_catalog.ml_account_products.constructs.restricted_infra import (
-    RestrictedNetwork,
+from service_catalog.account_bootstrap_products.constructs.prod_infra import (
+    ProdNetwork,
 )
 
 
-class MLRestrictedNetworkInfraStack(servicecatalog.ProductStack):
+class ProductStack(servicecatalog.ProductStack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
@@ -33,8 +33,8 @@ class MLRestrictedNetworkInfraStack(servicecatalog.ProductStack):
 
         # Network
 
-        self.restricted_network = RestrictedNetwork(
-            self, "RestrictedNetwork", transit_gateway_id, vpc_secondary_cidr
+        self.restricted_network = ProdNetwork(
+            self, "ProdNetwork", transit_gateway_id, vpc_secondary_cidr
         )
 
         # SSM Parameters

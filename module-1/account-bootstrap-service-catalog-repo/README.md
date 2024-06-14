@@ -89,10 +89,10 @@ follow the steps below to achieve that:
     git clone git@ssh.gitlab.aws.dev:ml-platform-governance/ml-platform-shared-services.git
     ```
 
-2. Change directory to `module/accounts-bootstrap-infra-portfolio` root
+2. Change directory to `module/account-bootstrap-service-catalog-repo` root
 
     ```bash
-    cd module-1/accounts-bootstrap-infra-portfolio
+    cd module-1/account-bootstrap-service-catalog-repo
     ```
 
 3. Install dependencies in a separate python environment using your favorite python packages manager. You can refer to `scripts/install-prerequisites-brew.sh` for commands to setup a python environment.
