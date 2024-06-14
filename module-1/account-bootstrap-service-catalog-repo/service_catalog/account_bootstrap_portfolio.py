@@ -1,21 +1,5 @@
 from aws_cdk import Stack
 from aws_cdk import aws_servicecatalog as servicecatalog
-# from service_catalog.ml_account_products.ml_workload_non_prod_account_bootstrap_stack import (
-#     MLPlayNetworkInfraStack,
-# )
-# from service_catalog.ml_account_products.ml_play_shared_services_account_stack import (
-#     MLPlaySharedServicesInfraStack,
-# )
-# from service_catalog.ml_account_products.ml_restricted_account_networking_stack import (
-#     MLRestrictedNetworkInfraStack,
-# )
-# from service_catalog.account.ml_restricted_shared_services_account_stack import (
-#     MLRestrictedSharedServicesInfraStack,
-# )
-
-# from service_catalog.account_bootstrap_products.products.non_prod.ml_workload_account.v1 import (
-#     MLWorkloadNonProdStack,
-# )
 
 import os
 import importlib
