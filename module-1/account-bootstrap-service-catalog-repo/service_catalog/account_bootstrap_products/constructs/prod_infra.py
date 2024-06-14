@@ -4,7 +4,7 @@ from aws_cdk import (
 from constructs import Construct
 
 
-class RestrictedNetwork(Construct):
+class ProdNetwork(Construct):
     def __init__(self, scope: Construct, construct_id: str, transit_gateway_id: str, vpc_secondary_cidr: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
