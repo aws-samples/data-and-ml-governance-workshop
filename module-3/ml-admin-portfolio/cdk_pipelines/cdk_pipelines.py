@@ -57,7 +57,7 @@ class CdkPipelineStack(Stack):
             pipeline_name="ml-admin-service-catalog-pipeline",
             synth=pipelines.ShellStep(
                 "Synth",
-                input=pipelines.CodePipelineSource.code_commit(repo, "main"),
+                input=pipelines.CodePipelineSource.code_commit(repo, "main"), # type: ignore
                 commands=[
                     "npm install -g aws-cdk && pip install -r requirements.txt",
                     "cdk synth",
