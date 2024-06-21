@@ -1,4 +1,4 @@
-# MLOps Foundation Infrastructure
+# Account Bootstrapping Portfolio
 
 This repository contains the resources that are required to create the account bootstrapping solution for the ML Platform best practices workshop.
 
@@ -8,14 +8,16 @@ The infrastructure mentioned in this repository should be deployed in the Landin
 
 ## Index
 
-- [MLOps Foundation Infrastructure](#mlops-foundation-infrastructure)
+- [Account Bootstrapping Portfolio](#account-bootstrapping-portfolio)
   - [Index](#index)
   - [Architecture](#architecture)
     - [Solution Architecture](#solution-architecture)
     - [Pipeline Stack](#pipeline-stack)
     - [Service Catalog Stacks](#service-catalog-stacks)
-      - [ML Play Account Networking](#ml-play-account-networking)
-      - [ML Restricted Account Networking](#ml-restricted-account-networking)
+      - [ML Workload Non Prod](#ml-workload-non-prod)
+      - [ML Workload Prod](#ml-workload-prod)
+      - [ML Shared Services Non Prod](#ml-shared-services-non-prod)
+      - [ML Shared Services Prod](#ml-shared-services-prod)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Bootstrap the Infrastructure Shared Services Account](#bootstrap-the-infrastructure-shared-services-account)
@@ -53,28 +55,42 @@ The pipeline stack deploys all the resources shown in the Account Hub in the abo
 
 In this section the different stacks that will be converted to Service Catalog Products are explained
 
-#### ML Play Account Networking
+#### ML Workload Non Prod
 
-![ML Play Account Networking](diagrams/stacks/MLPlayAccountNetworking.png)
-
-This stack deploys a VPC with 2 private subnets and 2 public subnets with NAT Gateway egress to internet.
-
-This stack is intended to be use for development accounts that our outside the company´s network and for testing new products or ideas.
-
-#### ML Restricted Account Networking
+![ML Workload Non Prod](diagrams/stacks/MLWorkloadNonProd.png)
 
 This stack deploys a VPC with 2 private subnets and 2 public subnets with NAT Gateway egress to internet.
 
-This stack is intended to be use for development accounts that our outside the company´s network and for testing new products or ideas.
+This stack is intended to be use for development accounts that are outside the company´s network and for testing new products or ideas.
+
+#### ML Workload Prod
+
+![ML Workload Prod](diagrams/stacks/MLWorkloadProd.png)
+
+This stack deploys a VPC with 2 private subnets and 2 transit subnets with Transit Gateway attachments for connectivity with the corporate network.
+
+This stack is intended to bootstrap production accounts that require connectivity to the corporate network. It will need as a requirement that a TGW exists in the AWS Landing Zone.
+
+#### ML Shared Services Non Prod
+
+![ML Workload Non Prod](diagrams/stacks/MLSharedServicesNonProd.png)
+
+Regarding connectivity this stack is identical to the ML Workload Non-prod, but it comes with a Amazon SageMaker Domain and an Amazon Eventbridge Bus so that the account can be used by ML Engineering teams to get up to speed and creating new services faster.
+
+#### ML Shared Services Prod
+
+![ML Workload Non Prod](diagrams/stacks/MLSharedServicesProd.png)
+
+Regarding connectivity this stack is identical to the ML Workload Prod, but it comes with a Amazon SageMaker Domain and an Amazon Eventbridge Bus so that the account can be used by ML Engineering teams to get up to speed and creating new services faster.
 
 ## Getting Started
 
 ### Prerequisites
 
-This is an AWS CDK project written in Python 3.8. Here's what you need to have on your workstation before you can deploy this project. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
+This is an AWS CDK project written in Python 3.10. Here's what you need to have on your workstation before you can deploy this project. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
 
 - [Node.js](https://nodejs.org/)
-- [Python3.8](https://www.python.org/downloads/release/python-380/) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+- [Python3.10](https://www.python.org/downloads/release) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 - [AWS CDK v2](https://aws.amazon.com/cdk/)
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [Docker](https://docs.docker.com/desktop/)
@@ -86,7 +102,7 @@ follow the steps below to achieve that:
 1. Clone this repository in your work environment (e.g. your laptop)
 
     ```bash
-    git clone git@ssh.gitlab.aws.dev:ml-platform-governance/ml-platform-shared-services.git
+    git clone https://github.com/aws-samples/data-and-ml-governance-workshop.git
     ```
 
 2. Change directory to `module/account-bootstrap-service-catalog-repo` root
