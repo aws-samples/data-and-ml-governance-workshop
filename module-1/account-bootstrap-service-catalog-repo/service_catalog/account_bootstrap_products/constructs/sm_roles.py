@@ -24,6 +24,12 @@ from constructs import Construct
 
 
 class SagemakerRoles(Construct):
+    """
+    This construct creates the following resources:
+
+    * IAM roles for SageMaker Studio
+    * IAM policies for the roles
+    """
     def __init__(
         self,
         scope: Construct,
