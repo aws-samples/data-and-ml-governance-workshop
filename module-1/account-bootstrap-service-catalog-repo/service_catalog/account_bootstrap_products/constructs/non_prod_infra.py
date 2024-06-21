@@ -5,6 +5,12 @@ from constructs import Construct
 
 
 class NonProdNetwork(Construct):
+    """
+    This construct creates the following resources:
+
+    * VPC with 3 private subnets and 3 public subnets, each in 3 AZs and a single NAT Gateway
+    """
+        
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 

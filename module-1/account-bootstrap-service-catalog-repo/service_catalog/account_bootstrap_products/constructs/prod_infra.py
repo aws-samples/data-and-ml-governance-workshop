@@ -5,6 +5,14 @@ from constructs import Construct
 
 
 class ProdNetwork(Construct):
+    """
+    This construct creates the following resources:
+
+    * VPC with 3 private subnets and 3 tgw subnets in 3 AZs
+    * Transit Gateway attachment to the VPC for corp network connectivity
+    * VPC Endpoints for Interface type services
+    """
+
     def __init__(self, scope: Construct, construct_id: str, transit_gateway_id: str, vpc_secondary_cidr: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
