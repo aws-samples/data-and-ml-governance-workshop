@@ -12,6 +12,8 @@ The repository is intended to be followed with the instructions from the worksho
 
 - [Module 1: Account Bootstrapping Portfolio](./module-1/account-bootstrap-service-catalog-repo/README.md): this section will show you how to create the AWS Service Catalog portoflio to bootstrap new AWS Accounts with AWS Control Tower blueprints.
 
+- [Module 3: ML Engineering](./module-3/README.md): introduction to Module 3 and instructions on how to share the portfolios created in the module
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
