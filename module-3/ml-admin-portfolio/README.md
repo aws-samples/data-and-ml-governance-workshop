@@ -1,127 +1,104 @@
-# MLOps Foundation Infrastructure
+# ML Admin Portfolio Set Up
 
-This repository contains the resources that are required to create the account bootstrapping solution for the ML Platform best practices workshop.
+this portfolio is intended to be used by the Project Admins of the Workload accounts. It will be used to create AWS resources for their teams. These resources can include resources Sagemaker Domains, Redshift Clusters...
 
-The infrastructure mentioned in this repository should be deployed in the Landing Zone Shared Services Infrastructure Account. The resulting Service Catalog portfolio from this repository will be used by the account vending feature of Control Tower to bootstrap new ML Accounts.
+## Prerriquistes
 
-**NOTE** To effectively use this repository you would need to have a good understanding around AWS networking services, AWS CloudFormation and AWS CDK.
+- We assume a role with required permissions and appropiate access has been set up to access the ML Shared Services Infra account from the AWS CLI. More information on this can be found on [Configure the AWS CLI to use AWS IAM Identity Center](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html) and [Use an IAM Role in the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html)
 
-## Index
+## Account access
 
-- [MLOps Foundation Infrastructure](#mlops-foundation-infrastructure)
-  - [Index](#index)
-  - [Architecture](#architecture)
-    - [Solution Architecture](#solution-architecture)
-    - [Pipeline Stack](#pipeline-stack)
-    - [Service Catalog Stacks](#service-catalog-stacks)
-      - [Amazon SageMaker Domain](#sagemaker-domain)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Bootstrap the ML Shared Services Account](#bootstrap-the-infrastructure-shared-services-account)
-    - [Deployment](#deployment)
-    - [Clean-up](#clean-up)
-  - [Troubleshooting](#troubleshooting)
+For cdk deployment you will need the "target account id" and "target region" where you want to deploy the portoflios, we recommend this to be your ML Shared Services Account.
 
-## Architecture
+To find the "target account id", click the account information on the top right corner of the console page. The 12-digit number after "Account ID" is the target account id.
 
-### Solution Architecture
+![Target Account ID](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-2.png)
 
-![ML Admin Portfolio Architecture](diagrams/Architecture.png)
 
-The architecture performs the following steps:
+On the left side of the account id, click the region name, and copy the region, which should have the format of <country code>-<region>-<number>, such as "us-east-1".
+    
+![Target Account Region](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-3.png)
 
-1. The CodeCommit repository hosts the CDK template for the pipeline and the different templates that will be converted into Service Catalog products for account bootstrapping.
-2. Whenever a change happens in the repository the pipeline is triggered and it performs the following steps:
 
-   - Checks if any changes have been made to the pipeline itself.
-   - Converts the CDK templates into CloudFormation assets.
-   - Imports them into the Blueprints Portfolio for account vending.
-
-3. The blueprints portfolio is maintained by the CCOE or a global infrastructure team, however is responsible of the Shared Services Hub Account.
-4. The Control Management account has access to this portfolio thanks to the "AWSControlTowerBlueprintAccess" role created in the previous section.
-5. New accounts can be easily created including blueprints that include all the necessary resources to get ML Projects started right away.
-
-### Pipeline Stack
-
-The pipeline stack deploys all the resources shown in the Account Hub in the above diagram:
-
-1. Code Commit repository. This repository will host this same code and code updates in it will trigger the pipeline.
-2. CodePipeline pipeline with the steps to convert the CDK resources in this repository into Service Catalog Products.
-
-### Service Catalog Stacks
-
-In this section the different stacks that will be converted to Service Catalog Products are explained
-
-#### Sagemaker Domain
-
-This stack deploys a SageMaker Domain with connectivity to the private subnets of the ML Workload Account.
-
-The SageMaker Domain is integrated with IAM Identity Center and everything required to get ML Teams up to speed in no time.
-
-## Getting Started
-
-### Prerequisites
-
-This is an AWS CDK project written in Python 3.10. Here's what you need to have on your workstation before you can deploy this project. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
-
-- [Node.js](https://nodejs.org/)
-- [Python3.10](https://www.python.org/downloads) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-- [AWS CDK v2](https://aws.amazon.com/cdk/)
-- [AWS CLI](https://aws.amazon.com/cli/)
-- [Docker](https://docs.docker.com/desktop/)
-
-### Bootstrap the ML Shared Services Account
-
-Follow the steps below to achieve that:
-
-1. Clone this repository in your work environment (e.g. your laptop)
-
-    ```bash
-    git clone https://github.com/aws-samples/data-and-ml-governance-workshop.git
-    ```
-
-2. Change directory to `module-3/ml-admin-portfolio` root
-
-    ```bash
-    cd module-3/ml-admin-portfolio
-    ```
-
-3. Install dependencies in a separate python environment using your favorite python packages manager. You can refer to `scripts/install-prerequisites-brew.sh` for commands to setup a python environment.
-
-    ```bash
-    python3 -m venv env
-    source env/bin/activate
-    pip install -r requirements.txt
-    ```
-
-4. Bootstrap your deployment target account using the following command:
-
-    ```bash
-    cdk bootstrap aws://<target account id>/<target region> --profile <target account profile>
-    ```
-
-    or, assuming you are already the profile of the account where you want to deploy:
-
-    ```bash
-    cdk bootstrap
-    ```
-**Note:** to check if you are the correct role run:
+Use the following command to find "target account profile". For example, mine is called "default".
 
 ```bash
-aws sts get-caller-identity
+aws configure list-profiles
 ```
 
-For more information read the [AWS CDK documentation on Bootstrapping](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-howto)
 
-### Deployment
+![Profile](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-4.png)
+
+You can also get temporary programatic access by going into the Iam Identity Center sign in portal, looking for the account where you need AWS CLI access, click on the *Command line or programmatic access* link and follow the instructions.
+
+![IAM Identity Center](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-iam-identity-center.png)
+
+For more information, read [AWS CDK: Bootstrapping](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-howto).
+
+### Required Packages
+
+The AWS Cloud Development Kit (CDK) is written in python. Below is a list of packages requierd to deploy the code in this workshop. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
+
+* [Node.js](https://nodejs.org/)
+* [Python](https://www.python.org/downloads/) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+* [AWS CDK v2](https://aws.amazon.com/cdk/)
+* [AWS CLI](https://aws.amazon.com/cli/)
+* [Docker](https://docs.docker.com/desktop/)
+
+## Set up the ML Admin portfolio
+
+We will create the AWS CodeCommit repository that will host the CDK code for the ML Admin templates and the AWS CodePipeline pipeline that will convert this code into Service Catalog products to be shared with Sandbox accounts.
+
+### Deploy the Pipeline Stack
+
+#### Step 1: Bootstrap the Infrastructure of the Shared Services account
+
+In this step, we will bootstrap the infrastructure for the Sagemaker Projects portfolio in the ML Shared Services account. 
+
+Clone the code [Git Repository](https://github.com/aws-samples/data-and-ml-governance-workshop.git) to a local directory.
+
+```bash
+git clone https://github.com/aws-samples/data-and-ml-governance-workshop.git
+```
+
+Change directory to ml-platform-shared-services/module-3/sagemaker-projects-portfolio directory.
+
+```bash
+cd data-and-ml-governance-workshop/module-3/ml-admin-portfolio
+```
+
+Install dependencies in a separate python environment using your favourite python packages manager.
+
+```bash
+python3 -m venv env
+source env/bin/activate
+pip install -r requirements.txt
+```
+
+Bootstrap your deployment target account using the following command:
+
+```bash
+cdk bootstrap aws://<target account id>/<target region> --profile <target account profile>
+```
+
+or if you already have a role and region from the account set up simply:
+
+```bash
+cdk bootstrap
+```
+
+
+#### Step 2: Create the Service Catalog portfolio
 
 Now we are going to set up the required resources in our ML Shared Services Account. For that follow this steps:
 
-1. Deploy the stack with the CodeCommit repository and the corresponding pipeline
+Deploy the stack with the CodeCommit repostory and the corresponding pipeline.
 
-    ```bash
-    cdk deploy --all --require-approval never
-    ```
+```bash
+cdk deploy --all --require-approval never
+```
+
+This may take a few minutes. Once it's finished, you should see the message containing the ARN of the deployed stack.
 
 Let's check the stack deployed. 
 
@@ -180,47 +157,33 @@ On the Service Catalog page, click "Portfolio" under "Administration". You will 
 ![Service Catalog Portfolio](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-12.png)
 
 A portfolio is composed of products. A product is a set of AWS cloud resources that you want to make available for deployment on AWS. Click on one of the products, and then click on the version name, you can see what's inside the product is mainly a CloudFormation template, which allows you to deploy infrastructure as code. For more information about CloudFormation templates, read 
-[AWS CloudFormation](https://aws.amazon.com/cloudformation/).
+[AWS CloudFormation](https://aws.amazon.com/cloudformation/). 
 
-### Clean-up
+## FAQ and Common Errors
 
-Destroy the deployed stack in the Shared Services Infrastructure Account
+## Common Errors
 
+- CDK Version:
+
+> ❌ **Error**:
+This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
+(Cloud assembly schema version mismatch: Maximum schema version supported is 34.0.0, but found 35.0.0)
+
+This error happens when the CDK Cli version and the Virtual Environment aws-cdk-lib package version is not the same. 
+
+To check both of them run ```cdk --version``` for the CDK Cli and ```pip list``` for the aws-cdk-lib python package.
+
+How to solve?: You can either modify the cdk cli version or the pip version.
+
+- CodeBuild concurrent runs
+
+> ❌ **Error**:
 ```bash
-cdk destroy --all
+Error calling startBuild: Cannot have more than 1 builds in queue for the account (Service: AWSCodeBuild; Status Code: 400; Error Code: AccountLimitExceededException; Request ID: xxxxx; Proxy: null)
 ```
 
-This command could fail in the following cases:
+This error happens because the given quota for our CodeBuild Environments is lower than the one required for the concurrent build of the Service Catalog Portfolio Products.
 
-- **S3 bucket not empty**
+How to solve?: See the following [Article](https://repost.aws/questions/QUkKVl--5kSmCW42h1sZyq1w/codebuild-error-cannot-have-more-than-0-builds-in-queue-for-the-account) and request a quota increase as specified in: [Requesting a quota increase](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html)
 
-If you get this error just simply go to the console and empty the S3 bucket that caused the error and run the destroy command again.
-
-- **Resource being used by another resource**
-
-This error is harder to track and would require some effort to trace where is the resource that we want to delete is being used and severe that dependency before running the destroy command again.
-
-**NOTE** You should just really follow CloudFormation error messages and debug from there as they would include details about which resource is causing the error and in some occasion information into what needs to happen in order to resolve it.
-
-## Troubleshooting
-
-- **CDK version X instead of Y**
-
-This error relates to a new update to cdk so run `npm install -g aws-cdk` again to update your cdk to the latest version and then run the deployment step again for each account that your stacks are deployed.
-
-- **`cdk synth`** **not running**  
- One of the following would solve the problem:  
-  - Docker is having an issue so restart your docker daemon
-  - Refresh your awscli credentials
-  - Clear all cached cdk outputs by running `make clean`
-
-- **[Error at /ml-deploy-pipeline/****<****env****>****/networking] Need to perform AWS calls for account X, but no credentials have been configured**  
-You can resolve this error by adding availability zone information to `cdk.context.json`. This error happens as CDK tries to do a lookup on the account to check which Availability Zones does the region of the target account have available and if it can be deployed across the targeted 3 AZs.
-
-  ```json
-  "availability-zones:account=<account_id>:region=eu-west-1": [
-      "eu-west-1a",
-      "eu-west-1b",
-      "eu-west-1c"
-  ]
-  ```
+![Quota Increase](/static/images/module-1-setup-foundations/quota-increase-request.png)
