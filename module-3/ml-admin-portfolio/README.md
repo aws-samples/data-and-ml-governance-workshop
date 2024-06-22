@@ -71,24 +71,28 @@ This stack is intended to be use for development accounts that our outside the c
 
 ### Prerequisites
 
-This is an AWS CDK project written in Python 3.8. Here's what you need to have on your workstation before you can deploy this project. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
+This is an AWS CDK project written in Python 3.10. Here's what you need to have on your workstation before you can deploy this project. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
 
 - [Node.js](https://nodejs.org/)
-- [Python3.8](https://www.python.org/downloads/release/python-380/) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+- [Python3.10](https://www.python.org/downloads) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 - [AWS CDK v2](https://aws.amazon.com/cdk/)
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [Docker](https://docs.docker.com/desktop/)
 
 ### Bootstrap the Infrastructure Shared Services Account
 
-follow the steps below to achieve that:
+Follow the steps below to achieve that:
 
 1. Clone this repository in your work environment (e.g. your laptop)
 
-2. Change directory to `accounts-bootstrap-infra-portfolio` root
+    ```bash
+    git clone https://github.com/aws-samples/data-and-ml-governance-workshop.git
+    ```
+
+2. Change directory to `module-3/ml-admin-portfolio` root
 
     ```bash
-    cd accounts-bootstrap-infra-portfolio
+    cd module-3/ml-admin-portfolio
     ```
 
 3. Install dependencies in a separate python environment using your favorite python packages manager. You can refer to `scripts/install-prerequisites-brew.sh` for commands to setup a python environment.
@@ -105,11 +109,22 @@ follow the steps below to achieve that:
     cdk bootstrap aws://<target account id>/<target region> --profile <target account profile>
     ```
 
-for more information read the [AWS CDK documentation on Bootstrapping](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-howto)
+    or, assuming you are already the profile of the account where you want to deploy:
+
+    ```bash
+    cdk bootstrap
+    ```
+**Note:** to check if you are the correct role run:
+
+```bash
+aws sts get-caller-identity
+```
+
+For more information read the [AWS CDK documentation on Bootstrapping](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-howto)
 
 ### Deployment
 
-Now we are going to set up the required resources in our Infrastructure Shared Services Account. For that follow this steps:
+Now we are going to set up the required resources in our ML Shared Services Account. For that follow this steps:
 
 1. Deploy the stack with the CodeCommit repository and the corresponding pipeline
 
@@ -117,22 +132,71 @@ Now we are going to set up the required resources in our Infrastructure Shared S
     cdk deploy --all --require-approval never
     ```
 
-2. Lets create the initial commit for our repository
+Let's check the stack deployed. 
 
-    ```bash
-    git init
-    git remote add codecommit codecommit::us-east-1://ml-admin-service-catalog-repo
-    git add .
-    git commit -m "Initial commit"
-    git push -u codecommit main
-    ```
+First, navigate to the [AWS CloudFormation console](https://us-east-1.console.aws.amazon.com/cloudformation/home). 
+
+![CloudFormation](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-9.png)
+
+Then click "Stacks" on the CloudFormation page.
+
+You should see a stack named "SmProjectsServiceCatalogPipeline". This is the stack that created resources such as CodeCommit repository, CodePipeline, S3 buckets, and etc.
+
+
+Let's check out the resources created. Take the CodeCommit repository as an example. 
+
+Type "CodeCommit" in the search bar, and then click "CodeCommit" in the dropdown menu.
+
+You can see there's a repository named "sm-projects-service-catalog-repo". If you click the repository name, you will notice the repository is currently empty. Soon we will push code to it.
+
+![CodeCommit Repo](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-10.png)
+
+We recommend to create a separate folder for the differnt repositories that will be created in the platform. To do that, get out of the cloned repository and create a parallel folder called platform-repositories
+
+```bash
+cd ../../.. # (as many .. as directories you have moved in)
+```
+
+Let´s clone and fill the empty created repository
+
+```bash
+cd platform-repositories
+git clone codecommit://ml-admin-service-catalog-repo
+cd ml-admin-service-catalog-repo
+cp -aR ../../ml-platform-shared-services/module-3/ml-admin-portfolio/. .
+```
+
+Let's push the code to the CodeCommit Repository to create the Service Catalog portfolio. Run the code below.
+
+```bash
+git add .
+git commit -m "Initial commit"
+git push -u origin main
+```
+
+
+Once it is pushed, let's go back to the CodeCommit repository we created earlier. Now it's no longer empty. Once the code is pushed to the code repository, it triggers the CodePipeline run to build and deploy artifacts to the Service Catalog. Click Pipelines -> Pipeline to check it out. You will see a pipeline named "cdk-service-catalog-pipeline". Click on the pipeline name to check out the steps of it. For more information, read [AWS CodePipeline](https://aws.amazon.com/codepipeline/?nc=sn&loc=1).
+
+![CodePipeline](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-11.png)
+
+
+It takes about 10 minutes for the pipeline to finish running. Once it's finished, let's check out the Service Catalog Portfolios.
+
+Type "Service Catalog" in the search bar and click on "Service Catalog"
+
+On the Service Catalog page, click "Portfolio" under "Administration". You will see a portfolio named "ML Admins Portfolio".
+
+![Service Catalog Portfolio](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-12.png)
+
+A portfolio is composed of products. A product is a set of AWS cloud resources that you want to make available for deployment on AWS. Click on one of the products, and then click on the version name, you can see what's inside the product is mainly a CloudFormation template, which allows you to deploy infrastructure as code. For more information about CloudFormation templates, read 
+[AWS CloudFormation](https://aws.amazon.com/cloudformation/).
 
 ### Clean-up
 
 Destroy the deployed stack in the Shared Services Infrastructure Account
 
 ```bash
-cdk destroy --all --profile mlops-governance
+cdk destroy --all
 ```
 
 This command could fail in the following cases:

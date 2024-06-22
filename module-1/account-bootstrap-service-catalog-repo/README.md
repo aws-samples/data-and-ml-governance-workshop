@@ -105,7 +105,7 @@ follow the steps below to achieve that:
     git clone https://github.com/aws-samples/data-and-ml-governance-workshop.git
     ```
 
-2. Change directory to `module/account-bootstrap-service-catalog-repo` root
+2. Change directory to `module-1/account-bootstrap-service-catalog-repo` root
 
     ```bash
     cd module-1/account-bootstrap-service-catalog-repo
@@ -137,7 +137,7 @@ follow the steps below to achieve that:
 aws sts get-caller-identity
 ```
 
-for more information read the [AWS CDK documentation on Bootstrapping](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-howto)
+For more information read the [AWS CDK documentation on Bootstrapping](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-howto)
 
 ### Deployment
 
