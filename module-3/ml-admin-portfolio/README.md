@@ -14,11 +14,10 @@ The infrastructure mentioned in this repository should be deployed in the Landin
     - [Solution Architecture](#solution-architecture)
     - [Pipeline Stack](#pipeline-stack)
     - [Service Catalog Stacks](#service-catalog-stacks)
-      - [ML Play Account Networking](#ml-play-account-networking)
-      - [ML Restricted Account Networking](#ml-restricted-account-networking)
+      - [Amazon SageMaker Domain](#sagemaker-domain)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
-    - [Bootstrap the Infrastructure Shared Services Account](#bootstrap-the-infrastructure-shared-services-account)
+    - [Bootstrap the ML Shared Services Account](#bootstrap-the-infrastructure-shared-services-account)
     - [Deployment](#deployment)
     - [Clean-up](#clean-up)
   - [Troubleshooting](#troubleshooting)
@@ -53,19 +52,11 @@ The pipeline stack deploys all the resources shown in the Account Hub in the abo
 
 In this section the different stacks that will be converted to Service Catalog Products are explained
 
-#### ML Play Account Networking
+#### Sagemaker Domain
 
-![ML Play Account Networking](diagrams/stacks/MLPlayAccountNetworking.png)
+This stack deploys a SageMaker Domain with connectivity to the private subnets of the ML Workload Account.
 
-This stack deploys a VPC with 2 private subnets and 2 public subnets with NAT Gateway egress to internet.
-
-This stack is intended to be use for development accounts that our outside the company´s network and for testing new products or ideas.
-
-#### ML Restricted Account Networking
-
-This stack deploys a VPC with 2 private subnets and 2 public subnets with NAT Gateway egress to internet.
-
-This stack is intended to be use for development accounts that our outside the company´s network and for testing new products or ideas.
+The SageMaker Domain is integrated with IAM Identity Center and everything required to get ML Teams up to speed in no time.
 
 ## Getting Started
 
@@ -79,7 +70,7 @@ This is an AWS CDK project written in Python 3.10. Here's what you need to have 
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [Docker](https://docs.docker.com/desktop/)
 
-### Bootstrap the Infrastructure Shared Services Account
+### Bootstrap the ML Shared Services Account
 
 Follow the steps below to achieve that:
 
