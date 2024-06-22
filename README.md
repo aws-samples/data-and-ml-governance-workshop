@@ -14,6 +14,8 @@ The repository is intended to be followed with the instructions from the worksho
 
 - [Module 3: ML Engineering](./module-3/README.md): introduction to Module 3 and instructions on how to share the portfolios created in the module
 
+- [Module 3: ML Admin Portfolio Set Up](./module-3/ml-admin-portfolio/README.md): instructions to set up the central portofolio and products for ML Workload Administrators to deploy Analytics products
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
