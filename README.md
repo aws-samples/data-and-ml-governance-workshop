@@ -16,6 +16,8 @@ The repository is intended to be followed with the instructions from the worksho
 
 - [Module 3: ML Admin Portfolio Set Up](./module-3/ml-admin-portfolio/README.md): instructions to set up the central portofolio and products for ML Workload Administrators to deploy Analytics products
 
+- [Module 3: SageMaker Projects Portfolio Set Up](./module-3/sagemaker-projects-portfolio/README.md): instructions to set up the central portofolio and SageMaker Projects products to get Data Scientists up to speed.
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
