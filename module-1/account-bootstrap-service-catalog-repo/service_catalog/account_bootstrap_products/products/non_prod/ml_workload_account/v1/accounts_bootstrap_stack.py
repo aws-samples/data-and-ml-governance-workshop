@@ -6,11 +6,15 @@ from aws_cdk import aws_sagemaker as sagemaker
 from aws_cdk import aws_servicecatalog as servicecatalog
 from aws_cdk import aws_ssm as ssm
 from constructs import Construct
-from service_catalog.ml_account_products.constructs.play_infra import PlayNetwork
-from service_catalog.ml_account_products.constructs.sm_roles import SagemakerRoles
+from service_catalog.account_bootstrap_products.constructs.non_prod_infra import (
+    NonProdNetwork,
+)
+from service_catalog.account_bootstrap_products.constructs.sm_roles import (
+    SagemakerRoles,
+)
 
 
-class MLPlaySharedServicesInfraStack(servicecatalog.ProductStack):
+class ProductStack(servicecatalog.ProductStack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
@@ -32,10 +36,10 @@ class MLPlaySharedServicesInfraStack(servicecatalog.ProductStack):
             type="String",
             description="S3 bucket where data are stored",
             default="sagemaker-s3-bucket",
-            maxLength=30,
+            max_length=30,
         ).value_as_string
 
-        self.play_network = PlayNetwork(self, "PlayNetwork")
+        self.play_network = NonProdNetwork(self, "NonProdNetwork")
 
         # SSM Parameters
         ssm.StringParameter(
