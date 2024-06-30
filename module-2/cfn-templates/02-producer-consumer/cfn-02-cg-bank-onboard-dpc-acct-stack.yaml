@@ -28,20 +28,20 @@ Resources:
             Action:
               - lakeformation:RegisterResource
             Resource: 
-              - !Sub arn:aws:s3:::${BankDataLakeBucketName}
+              - !Sub arn:${AWS::Partition}:s3:::${BankDataLakeBucketName}
           -
             Effect: "Allow"
             Action:
               - s3:GetObject
               - s3:PutObject
             Resource: 
-              - !Sub arn:aws:s3:::${BankDataLakeBucketName}/*
+              - !Sub arn:${AWS::Partition}:s3:::${BankDataLakeBucketName}/*
           -
             Effect: "Allow"
             Action:
               - s3:ListBucket
             Resource: 
-              - !Sub arn:aws:s3:::${BankDataLakeBucketName}
+              - !Sub arn:${AWS::Partition}:s3:::${BankDataLakeBucketName}
           -
             Effect: "Allow"
             Action:
@@ -53,8 +53,8 @@ Resources:
   LFDataLakeLocationBank:
     Type: AWS::LakeFormation::Resource
     Properties:
-      ResourceArn: !Sub arn:aws:s3:::${BankDataLakeBucketName}
-      RoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/ml-governance-central-acct-lf-srv-role"
+      ResourceArn: !Sub arn:${AWS::Partition}:s3:::${BankDataLakeBucketName}
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-governance-central-acct-lf-srv-role"
       UseServiceLinkedRole: false
       
   LFDataLocationPermissionBank:
@@ -69,7 +69,7 @@ Resources:
         - DATA_LOCATION_ACCESS
       Resource:
         DataLocationResource:
-          S3Resource: !Sub arn:aws:s3:::${BankDataLakeBucketName}
+          S3Resource: !Sub arn:${AWS::Partition}:s3:::${BankDataLakeBucketName}
 
   LFTagLevelPermissions:
     Type: AWS::LakeFormation::PrincipalPermissions

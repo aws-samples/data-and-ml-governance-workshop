@@ -20,7 +20,7 @@ Resources:
           Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
             Action: sts:AssumeRole
         Path: "/"
         ManagedPolicyArns:
@@ -46,7 +46,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonSageMakerFeatureStoreAccess
       Policies:
         -
-          PolicyName: !Sub "ml-gov-data-producer-consumer-${AWS::Region}-${AWS::AccountId}-acess-policy"
+          PolicyName: !Sub "ml-gov-data-producer-consumer-${AWS::Region}-${AWS::AccountId}-access-policy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -57,13 +57,13 @@ Resources:
                   - "s3:PutObject"
                   - "s3:GetObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}/*"
-                  - !Sub "arn:aws:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}"
+                  - !Sub "arn:${AWS::Partition}:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}/*"
+                  - !Sub "arn:${AWS::Partition}:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}"
 
   DataProducerGlueServiceRole:
     Type: AWS::IAM::Role
     Properties :
-      RoleName: !Sub "ml-gov-data-producer-consumer-glue-role"
+      RoleName: "ml-gov-data-producer-consumer-glue-role"
       AssumeRolePolicyDocument:
         Version : 2012-10-17
         Statement :
@@ -110,7 +110,7 @@ Resources:
               - !Join ['', [!Sub 'arn:${AWS::Partition}:s3:::', !Ref BankDataLakeBucket]]
             Principal:
               AWS:
-                - !Sub 'arn:aws:iam::${CentralGovernanceAWSAccountID}:role/ml-governance-central-acct-lf-srv-role'
+                - !Sub 'arn:${AWS::Partition}:iam::${CentralGovernanceAWSAccountID}:role/ml-governance-central-acct-lf-srv-role'
 
   S3DataLakePolicy:
     Type: AWS::IAM::Policy
@@ -124,8 +124,8 @@ Resources:
             Action:
               - s3:*
             Resource: 
-              - !Sub 'arn:aws:s3:::${BankDataLakeBucket}/*'
-              - !Sub 'arn:aws:s3:::${BankDataLakeBucket}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${BankDataLakeBucket}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${BankDataLakeBucket}'
           -
             Effect: "Allow"
             Action:

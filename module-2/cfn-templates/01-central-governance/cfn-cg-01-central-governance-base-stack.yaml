@@ -2,7 +2,7 @@
 # stackName: cfn-cg-01-central-governance-base-stack
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: This Stack is Central governance base stack - cfn-cg-01-central-governance-base-stack will bed eployed in central governance account
+Description: This Stack is Central governance base stack - cfn-cg-01-central-governance-base-stack will be deployed in central governance account
 
 Resources:
 # IAM Roles and Policies 
@@ -22,7 +22,6 @@ Resources:
       Path: /
 
   S3DataLakePolicy:
-    DependsOn: LakeformationServiceRole
     Type: AWS::IAM::Policy
     Properties:
       PolicyName: "S3DataLakePolicy"
@@ -46,7 +45,7 @@ Resources:
           Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
             Action: sts:AssumeRole
         Path: "/"
         ManagedPolicyArns:

@@ -18,21 +18,6 @@ Parameters:
       Description: Central feature store KMS Key Arn (used for Feature group data catalog bucket).
       Default: arn:aws:kms:us-east-1:658352330480:key/b7eb302a-9ce6-434e-92b7-8e97eae3cab4
 
-  # LFRegisterLocationServiceRoleName:
-  #       Type: String
-  #       Description: Account Number of the Producer Account for sharing cross account access.
-  #       Default: datamesh-central-governan-LFRegisterLocationServic-1MAGQXKBGBDAW
-
-  # LFRegisterLocationServiceRoleArn:
-  #       Type: String
-  #       Description: Account Number of the Producer Account for sharing cross account access.
-  #       Default: arn:aws:iam::954336505079:role/datamesh-central-governan-LFRegisterLocationServic-1MAGQXKBGBDAW
-
-  # CentralFeatureStoreDataBase:
-  #       Type: String
-  #       Description: Central feature store database name.
-  #       Default: centralfeaturestore
-
 Resources:
 
   CentralFeatureStoreS3Policy:
@@ -47,20 +32,20 @@ Resources:
             Action:
               - lakeformation:RegisterResource
             Resource: 
-              - !Sub arn:aws:s3:::${CentralFeatureStoreBucketName}
+              - !Sub arn:${AWS::Partition}:s3:::${CentralFeatureStoreBucketName}
           -
             Effect: "Allow"
             Action:
               - s3:GetObject
               - s3:PutObject
             Resource: 
-              - !Sub arn:aws:s3:::${CentralFeatureStoreBucketName}/*
+              - !Sub arn:${AWS::Partition}:s3:::${CentralFeatureStoreBucketName}/*
           -
             Effect: "Allow"
             Action:
               - s3:ListBucket
             Resource: 
-              - !Sub arn:aws:s3:::${CentralFeatureStoreBucketName}
+              - !Sub arn:${AWS::Partition}:s3:::${CentralFeatureStoreBucketName}
           -
             Effect: "Allow"
             Action:
@@ -95,9 +80,9 @@ Resources:
   LFDataLakeLocationBank:
     Type: AWS::LakeFormation::Resource
     Properties:
-      ResourceArn: !Sub arn:aws:s3:::${CentralFeatureStoreBucketName}
+      ResourceArn: !Sub arn:${AWS::Partition}:s3:::${CentralFeatureStoreBucketName}
       # RoleArn: !Ref LFRegisterLocationServiceRoleArn 
-      RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ml-governance-central-acct-lf-srv-role'
+      RoleArn: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-governance-central-acct-lf-srv-role'
       UseServiceLinkedRole: false
       
   LFDataLocationPermissionBank:
@@ -112,7 +97,7 @@ Resources:
         - DATA_LOCATION_ACCESS
       Resource:
         DataLocationResource:
-          S3Resource: !Sub arn:aws:s3:::${CentralFeatureStoreBucketName}
+          S3Resource: !Sub arn:${AWS::Partition}:s3:::${CentralFeatureStoreBucketName}
 
   LFTagLevelPermissions:
     Type: AWS::LakeFormation::PrincipalPermissions

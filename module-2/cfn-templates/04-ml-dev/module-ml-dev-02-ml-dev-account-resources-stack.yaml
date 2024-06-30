@@ -13,7 +13,6 @@ Parameters:
   CentralGovernanceAWSAccountID:
     Type: String
     Description: Account Number of the Producer Account for sharing cross account access.
-    Default: 327366532232	
 
 Resources:
   CentralFSDBResourceLink:
@@ -35,7 +34,7 @@ Resources:
           Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
             Action: sts:AssumeRole
             Condition:
               Bool:

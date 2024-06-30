@@ -12,7 +12,7 @@ Parameters:
 
   CentralGovernanceAWSAccountID:
     Type: String
-    Description: Lakeformation Governace Account Number  for sharing cross account access.
+    Description: Lakeformation Governance Account Number  for sharing cross account access.
 
 
 Resources:
@@ -21,14 +21,14 @@ Resources:
     Type: AWS::LakeFormation::Permissions
     Properties:
       DataLakePrincipal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
       Permissions: 
         - DATA_LOCATION_ACCESS
       PermissionsWithGrantOption: 
         - DATA_LOCATION_ACCESS
       Resource:
         DataLocationResource:
-          S3Resource: !Sub arn:aws:s3:::central-featurestore-${AWS::AccountId}-${AWS::Region}
+          S3Resource: !Sub arn:${AWS::Partition}:s3:::central-featurestore-${AWS::AccountId}-${AWS::Region}
           CatalogId: !Ref CentralGovernanceAWSAccountID
 
 # LF Permissions to Glue Service Role
@@ -36,7 +36,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
       Resource:
         LFTag:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -52,7 +52,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
       Resource:
         LFTagPolicy:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -71,7 +71,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
 
       Resource:
         LFTagPolicy:
@@ -95,7 +95,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-glue-role-${AWS::AccountId}-${AWS::Region}
       Resource:
         Database:
           CatalogId: !Ref AWS::AccountId
@@ -111,7 +111,7 @@ Resources:
     Properties:
       Principal:
         # DataLakePrincipalIdentifier: !Ref SagemakerServiceRoleArn
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
 
       Resource:
         LFTag:
@@ -129,7 +129,7 @@ Resources:
     Properties:
       Principal:
         # DataLakePrincipalIdentifier: !Ref SagemakerServiceRoleArn
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
 
       Resource:
         LFTagPolicy:
@@ -151,7 +151,7 @@ Resources:
     Properties:
       Principal:
         # DataLakePrincipalIdentifier: !Ref SagemakerServiceRoleArn
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/central-fs-sagemaker-role-${AWS::AccountId}-${AWS::Region}
       Resource:
         LFTagPolicy:
           CatalogId: !Ref CentralGovernanceAWSAccountID

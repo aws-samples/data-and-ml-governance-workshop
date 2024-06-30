@@ -16,21 +16,21 @@ Resources:
     Type: AWS::LakeFormation::Permissions
     Properties:
       DataLakePrincipal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
       Permissions: 
         - DATA_LOCATION_ACCESS
       PermissionsWithGrantOption: 
         - DATA_LOCATION_ACCESS
       Resource:
         DataLocationResource:
-          S3Resource: !Sub arn:aws:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}
+          S3Resource: !Sub arn:${AWS::Partition}:s3:::ml-gov-bank-${AWS::AccountId}-${AWS::Region}
           CatalogId: !Ref CentralGovernanceAWSAccountID
 
   LFTagLevelPermissions:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role 
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role 
       Resource:
         LFTag:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -46,7 +46,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
       Resource:
         LFTagPolicy:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -65,7 +65,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
 
       Resource:
         LFTagPolicy:
@@ -89,11 +89,11 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-data-producer-consumer-glue-role
       Resource:
         Database:
           CatalogId: !Ref AWS::AccountId
-          Name: !Sub 'rl_fs_bankdb'
+          Name: 'rl_fs_bankdb'
       Permissions:
         - DESCRIBE
       PermissionsWithGrantOption: 
@@ -104,7 +104,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
 
       Resource:
         LFTag:
@@ -121,7 +121,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
       Resource:
         LFTagPolicy:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -141,7 +141,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ml-gov-sagemaker-role
       Resource:
         LFTagPolicy:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -160,12 +160,12 @@ Resources:
       PermissionsWithGrantOption: 
         - DESCRIBE         
          
-# # LF Permissions to AthenaConsumerAssumeRole
+## LF Permissions to AthenaConsumerAssumeRole
   LFTagLevelPermissionsAthenaConsumerAssumeRole:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
       Resource:
         LFTag:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -181,7 +181,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
       Resource:
         LFTagPolicy:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -201,7 +201,7 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
       Resource:
         LFTagPolicy:
           CatalogId: !Ref CentralGovernanceAWSAccountID
@@ -224,11 +224,11 @@ Resources:
     Type: AWS::LakeFormation::PrincipalPermissions
     Properties:
       Principal:
-        DataLakePrincipalIdentifier: !Sub arn:aws:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
+        DataLakePrincipalIdentifier: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/AthenaConsumerAssumeRole
       Resource:
         Database:
           CatalogId: !Ref AWS::AccountId
-          Name: !Sub 'rl_fs_bankdb'
+          Name: 'rl_fs_bankdb'
       Permissions:
         - DESCRIBE
       PermissionsWithGrantOption: 
