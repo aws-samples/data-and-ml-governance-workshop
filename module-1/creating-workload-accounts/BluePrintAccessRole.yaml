@@ -15,7 +15,7 @@ Resources:
           - Effect: "Allow"
             Principal: 
               AWS: 
-                - !Sub arn:aws:iam::${ManagementAccountId}:role/service-role/AWSControlTowerAdmin
+                - !Sub arn:${AWS::Partition}:iam::${ManagementAccountId}:role/service-role/AWSControlTowerAdmin
             Action: 
               - "sts:AssumeRole"
       ManagedPolicyArns:
