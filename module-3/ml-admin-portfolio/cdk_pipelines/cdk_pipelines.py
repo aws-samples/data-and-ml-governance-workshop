@@ -1,6 +1,7 @@
 from aws_cdk import Stack, Stage
 from aws_cdk import aws_codecommit as codecommit
 from aws_cdk import pipelines as pipelines
+from cdk_nag import NagPackSuppression, NagSuppressions
 from common_infra.common_infra_stack import CommonInfraStack
 from constructs import Construct
 from service_catalog.ml_admin_portfolio import ServiceCatalogMLAdmin
@@ -24,7 +25,7 @@ class MLCommonInfra(Stage):
         super().__init__(scope, construct_id, **kwargs)
 
         ml_workloads_ou_id = self.node.try_get_context("MLWorkloadsOUId")
-        ml_workloads_org_path = self.node.try_get_context("MLWorkloadsOrgPath") 
+        ml_workloads_org_path = self.node.try_get_context("MLWorkloadsOrgPath")
         ml_deployment_org_id = self.node.try_get_context("MLDeploymentOUId")
         ml_deployment_org_path = self.node.try_get_context("MLDeploymentOrgPath")
 
@@ -57,7 +58,7 @@ class CdkPipelineStack(Stack):
             pipeline_name="ml-admin-service-catalog-pipeline",
             synth=pipelines.ShellStep(
                 "Synth",
-                input=pipelines.CodePipelineSource.code_commit(repo, "main"), # type: ignore
+                input=pipelines.CodePipelineSource.code_commit(repo, "main"),  # type: ignore
                 commands=[
                     "npm install -g aws-cdk && pip install -r requirements.txt",
                     "cdk synth",
@@ -78,4 +79,30 @@ class CdkPipelineStack(Stack):
                 env={"account": hub_account, "region": hub_region},
             )
         )
-        
+
+        pipeline.build_pipeline()
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/MLAdminServiceCatalogPipeline/Pipeline/Pipeline/ArtifactsBucket/Resource",
+            [
+                NagPackSuppression(
+                    id="AwsSolutions-S1", reason="Logging managed by pipeline construct"
+                )
+            ],
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/MLAdminServiceCatalogPipeline/Pipeline/Resource",
+            [
+                NagPackSuppression(
+                    id="AwsSolutions-CB4",
+                    reason="Encryption managed by pipeline construct",
+                ),
+                NagPackSuppression(
+                    id="AwsSolutions-IAM5",
+                    reason="IAM permissions managed by pipeline construct",
+                ),
+            ],
+            apply_to_children=True,
+        )
