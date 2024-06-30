@@ -2,7 +2,7 @@
 
 this portfolio will contain the Sagemaker Projects products to be used by the ML teams to accelerate their ML models development while complying with the organization´s best practices.
 
-## Prerriquistes
+## Prerequisites
 
 - We assume a role with required permissions and appropriate access has been set up to access the ML Shared Services Infra account from the AWS CLI. More information on this can be found on [Configure the AWS CLI to use AWS IAM Identity Center](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html) and [Use an IAM Role in the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html)
 
@@ -26,7 +26,7 @@ aws configure list-profiles
 
 ![Profile](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-4.png)
 
-You can also get temporary programatic access by going into the Iam Identity Center sign in portal, looking for the account where you need AWS CLI access, click on the *Command line or programmatic access* link and follow the instructions.
+You can also get temporary programmatic access by going into the Iam Identity Center sign in portal, looking for the account where you need AWS CLI access, click on the *Command line or programmatic access* link and follow the instructions.
 
 ![IAM Identity Center](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-iam-identity-center.png)
 
@@ -66,7 +66,7 @@ Change directory to ml-platform-shared-services/module-3/sagemaker-projects-port
 cd data-and-ml-governance-workshop/module-3/sagemaker-projects-portfolio
 ```
 
-Install dependencies in a separate python environment using your favourite python packages manager.
+Install dependencies in a separate python environment using your favorite python packages manager.
 
 ```bash
 python3 -m venv env
@@ -90,7 +90,7 @@ cdk bootstrap
 
 Now we are going to set up the required resources in our ML Shared Services Account. For that follow this steps:
 
-Deploy the stack with the CodeCommit repostory and the corresponding pipeline.
+Deploy the stack with the CodeCommit repository and the corresponding pipeline.
 
 ```bash
 cdk deploy --all --require-approval never
@@ -116,7 +116,7 @@ You can see there's a repository named "sm-projects-service-catalog-repo". If yo
 
 ![CodeCommit Repo](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-6.png)
 
-We recommend to create a separate folder for the differnt repositories that will be created in the platform. To do that, get out of the cloned repository and create a parallel folder called platform-repositories
+We recommend to create a separate folder for the different repositories that will be created in the platform. To do that, get out of the cloned repository and create a parallel folder called platform-repositories
 
 ```bash
 cd ../../.. # (as many .. as directories you have moved in)
