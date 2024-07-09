@@ -68,7 +68,7 @@ class ProdNetwork(Construct):
 
         for service in interface_endpoints:
             self.vpc.add_interface_endpoint(
-                f"VpcEnpoint{service.short_name}",
+                f"VpcEndpoint{service.short_name}",
                 service=service
             )
 
