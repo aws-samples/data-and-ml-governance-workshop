@@ -1,24 +1,22 @@
 # SageMaker Projects Portfolio Set Up
 
-this portfolio will contain the coorporate Sagemaker Projects products to be used by the ML teams to accelerate their ML models development while compliying with the organization´s best practices.
+this portfolio will contain the Sagemaker Projects products to be used by the ML teams to accelerate their ML models development while complying with the organization´s best practices.
 
-## Prerriquistes
+## Prerequisites
 
-- We assume a role with required permissions and appropiate access has been set up to access the ML Shared Services Infra account from the AWS CLI. More information on this can be found on [Configure the AWS CLI to use AWS IAM Identity Center](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html) and [Use an IAM Role in the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html)
+- We assume a role with required permissions and appropriate access has been set up to access the ML Shared Services Infra account from the AWS CLI. More information on this can be found on [Configure the AWS CLI to use AWS IAM Identity Center](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html) and [Use an IAM Role in the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html)
 
 ## Account access
 
-For cdk deployment you will need the "target account id" and "target region" where you want to deploy the portoflios, we recommend this to be your ML Shared Services Account.
+For cdk deployment you will need the "target account id" and "target region" where you want to deploy the portfolios, we recommend this to be your ML Shared Services Account.
 
 To find the "target account id", click the account information on the top right corner of the console page. The 12-digit number after "Account ID" is the target account id.
 
 ![Target Account ID](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-2.png)
 
+On the left side of the account id, click the region name, and copy the region, which should have the format of \<country code\>-\<region\>-\<number\>, such as "us-east-1".
 
-On the left side of the account id, click the region name, and copy the region, which should have the format of <country code>-<region>-<number>, such as "us-east-1".
-    
 ![Target Account Region](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-3.png)
-
 
 Use the following command to find "target account profile". For example, mine is called "default".
 
@@ -26,10 +24,9 @@ Use the following command to find "target account profile". For example, mine is
 aws configure list-profiles
 ```
 
-
 ![Profile](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-4.png)
 
-You can also get temporary programatic access by going into the Iam Identity Center sign in portal, looking for the account where you need AWS CLI access, click on the *Command line or programmatic access* link and follow the instructions.
+You can also get temporary programmatic access by going into the Iam Identity Center sign in portal, looking for the account where you need AWS CLI access, click on the *Command line or programmatic access* link and follow the instructions.
 
 ![IAM Identity Center](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-iam-identity-center.png)
 
@@ -37,14 +34,13 @@ For more information, read [AWS CDK: Bootstrapping](https://docs.aws.amazon.com/
 
 ### Required Packages
 
-The AWS Cloud Development Kit (CDK) is written in python. Below is a list of packages requierd to deploy the code in this workshop. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
+The AWS Cloud Development Kit (CDK) is written in python. Below is a list of packages required to deploy the code in this workshop. It is preferred to use a linux OS to be able to run all cli commands and avoid path issues.
 
-* [Node.js](https://nodejs.org/)
-* [Python](https://www.python.org/downloads/) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-* [AWS CDK v2](https://aws.amazon.com/cdk/)
-* [AWS CLI](https://aws.amazon.com/cli/)
-* [Docker](https://docs.docker.com/desktop/)
-
+- [Node.js](https://nodejs.org/)
+- [Python](https://www.python.org/downloads/) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+- [AWS CDK v2](https://aws.amazon.com/cdk/)
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [Docker](https://docs.docker.com/desktop/)
 
 ## Set up the Sagemaker Projects portfolio
 
@@ -54,7 +50,7 @@ We will create the AWS CodeCommit repository that will host the CDK code for the
 
 #### Step 1: Bootstrap the Infrastructure of the Shared Services account
 
-In this step, we will bootstrap the infrastructure for the Sagemaker Projects portfolio in the ML Shared Services account. 
+In this step, we will bootstrap the infrastructure for the Sagemaker Projects portfolio in the ML Shared Services account.
 
 Clone the code [Git Repository](git@github.com:aws-samples/data-and-ml-governance-workshop.git) to a local directory.
 
@@ -70,7 +66,7 @@ Change directory to ml-platform-shared-services/module-3/sagemaker-projects-port
 cd data-and-ml-governance-workshop/module-3/sagemaker-projects-portfolio
 ```
 
-Install dependencies in a separate python environment using your favourite python packages manager.
+Install dependencies in a separate python environment using your favorite python packages manager.
 
 ```bash
 python3 -m venv env
@@ -94,7 +90,7 @@ cdk bootstrap
 
 Now we are going to set up the required resources in our ML Shared Services Account. For that follow this steps:
 
-Deploy the stack with the CodeCommit repostory and the corresponding pipeline.
+Deploy the stack with the CodeCommit repository and the corresponding pipeline.
 
 ```bash
 cdk deploy --all --require-approval never
@@ -102,9 +98,9 @@ cdk deploy --all --require-approval never
 
 This may take a few minutes. Once it's finished, you should see the message containing the ARN of the deployed stack.
 
-Let's check the stack deployed. 
+Let's check the stack deployed.
 
-First, navigate to the [AWS CloudFormation console](https://us-east-1.console.aws.amazon.com/cloudformation/home). 
+First, navigate to the [AWS CloudFormation console](https://us-east-1.console.aws.amazon.com/cloudformation/home).
 
 ![CloudFormation](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-5.png)
 
@@ -112,8 +108,7 @@ Then click "Stacks" on the CloudFormation page.
 
 You should see a stack named "SmProjectsServiceCatalogPipeline". This is the stack that created resources such as CodeCommit repository, CodePipeline, S3 buckets, and etc.
 
-
-Let's check out the resources created. Take the CodeCommit repository as an example. 
+Let's check out the resources created. Take the CodeCommit repository as an example.
 
 Type "CodeCommit" in the search bar, and then click "CodeCommit" in the dropdown menu.
 
@@ -121,7 +116,7 @@ You can see there's a repository named "sm-projects-service-catalog-repo". If yo
 
 ![CodeCommit Repo](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-6.png)
 
-We recommend to create a separate folder for the differnt repositories that will be created in the platform. To do that, get out of the cloned repository and create a parallel folder called platform-repositories
+We recommend to create a separate folder for the different repositories that will be created in the platform. To do that, get out of the cloned repository and create a parallel folder called platform-repositories
 
 ```bash
 cd ../../.. # (as many .. as directories you have moved in)
@@ -149,7 +144,6 @@ Once it is pushed, let's go back to the CodeCommit repository we created earlier
 
 ![CodePipeline](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-7.png)
 
-
 It takes about 10 minutes for the pipeline to finish running. Once it's finished, let's check out the Service Catalog Portfolios.
 
 Type "Service Catalog" in the search bar and click on "Service Catalog"
@@ -158,8 +152,8 @@ On the Service Catalog page, click "Portfolio" under "Administration". You will 
 
 ![Service Catalog Portfolio](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-8.png)
 
-A product is a set of AWS cloud resources that you want to make available for deployment on AWS. Click on one of the products, and then click on the version name, you can see what's inside the product is mainly a CloudFormation template, which allows you to deploy infrastructure as code. For more information about CloudFormation templates, read 
-[AWS CloudFormation](https://aws.amazon.com/cloudformation/). 
+A product is a set of AWS cloud resources that you want to make available for deployment on AWS. Click on one of the products, and then click on the version name, you can see what's inside the product is mainly a CloudFormation template, which allows you to deploy infrastructure as code. For more information about CloudFormation templates, read
+[AWS CloudFormation](https://aws.amazon.com/cloudformation/).
 
 ## Next steps
 
@@ -175,7 +169,7 @@ Now that we have set up and configure the ML Shared Services Account and the por
 This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
 (Cloud assembly schema version mismatch: Maximum schema version supported is 34.0.0, but found 35.0.0)
 
-This error happens when the CDK Cli version and the Virtual Environment aws-cdk-lib package version is not the same. 
+This error happens when the CDK Cli version and the Virtual Environment aws-cdk-lib package version is not the same.
 
 To check both of them run ```cdk --version``` for the CDK Cli and ```pip list``` for the aws-cdk-lib python package.
 
@@ -184,6 +178,7 @@ How to solve?: You can either modify the cdk cli version or the pip version.
 - CodeBuild concurrent runs
 
 > ❌ **Error**:
+
 ```bash
 Error calling startBuild: Cannot have more than 1 builds in queue for the account (Service: AWSCodeBuild; Status Code: 400; Error Code: AccountLimitExceededException; Request ID: xxxxx; Proxy: null)
 ```

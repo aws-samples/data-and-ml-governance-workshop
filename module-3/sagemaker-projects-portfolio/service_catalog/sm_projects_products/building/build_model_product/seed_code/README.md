@@ -8,16 +8,16 @@ The expected output of the your main pipeline (here `training/pipeline.py`) is a
 
 `source_scripts/` contains the underlying scripts run by the steps of your SageMaker Pipelines. For example, if your SageMaker Pipeline runs a Processing Job as part of a Processing Step, the code being run inside the Processing Job should be defined in this folder.
 A typical folder structure for `source_scripts/` can contain `helpers`, `preprocessing`, `training`, `postprocessing`, `evaluate`, depending on the nature of the steps run as part of the SageMaker Pipeline.
-We provide here an example with the Abalone dataset, to train an XGBoost model (using), and exaluating the model on a test set before sending it for manual approval to SageMaker Model Registry inside the SageMaker ModelPackageGroup defined when creating the SageMaker Project.
+We provide here an example with the Abalone dataset, to train an XGBoost model (using), and evaluating the model on a test set before sending it for manual approval to SageMaker Model Registry inside the SageMaker ModelPackageGroup defined when creating the SageMaker Project.
 Additionally, if you use custom containers, the Dockerfile definitions should be found in that folder.
 
-`tests/` contains the unittests for your `source_scripts/`
+`tests/` contains the unit tests for your `source_scripts/`
 
 `notebooks/` contains experimentation notebooks.
 
-# Run pipeline from command line from this folder
+## Run pipeline from command line from this folder
 
-```
+```bash
 pip install -e .
 
 run-pipeline --module-name ml_pipelines.training.pipeline --role-arn YOUR_SAGEMAKER_EXECUTION_ROLE_ARN --kwargs '{"region":"eu-west-1"}'
