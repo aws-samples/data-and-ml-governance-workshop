@@ -7,6 +7,7 @@ from aws_cdk import Stack, Tags
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_servicecatalog as servicecatalog
+from aws_cdk import aws_codeconnections as codeconnections
 from constructs import Construct
 
 central_account_id = os.getenv("CDK_DEFAULT_ACCOUNT", cdk.Aws.ACCOUNT_ID)
@@ -17,6 +18,7 @@ class ServiceCatalogSmProjects(Stack):
         self,
         scope: Construct,
         construct_id: str,
+        codeconnection: codeconnections.CfnConnection,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -107,6 +109,7 @@ class ServiceCatalogSmProjects(Stack):
             portfolio=portfolio_build,
             launch_role=launch_role,
             sc_product_artifact_bucket=sc_product_artifact_bucket,
+            codeconnection=codeconnection,
             templates_directory="service_catalog/sm_projects_products/building",
         )
 
@@ -114,6 +117,7 @@ class ServiceCatalogSmProjects(Stack):
             portfolio=portfolio_deploy,
             launch_role=launch_role,
             sc_product_artifact_bucket=sc_product_artifact_bucket,
+            codeconnection=codeconnection,
             templates_directory="service_catalog/sm_projects_products/deploy",
         )
 
@@ -121,6 +125,7 @@ class ServiceCatalogSmProjects(Stack):
         self,
         portfolio: servicecatalog.Portfolio,
         launch_role: iam.IRole,
+        codeconnection: codeconnections.CfnConnection,
         templates_directory: str = "service_catalog/sm_projects_products",
         **kwargs,
     ):
@@ -132,6 +137,7 @@ class ServiceCatalogSmProjects(Stack):
                 portfolio=portfolio,
                 template_py_file=file,
                 launch_role=launch_role,
+                codeconnection=codeconnection,
                 **kwargs,
             )
             for file in templates_path.glob("**/*_product_stack.py")
@@ -147,6 +153,7 @@ class SmProject(cdk.NestedStack):
         template_py_file: Path,
         launch_role: iam.IRole,
         sc_product_artifact_bucket: s3.Bucket,
+        codeconnection: codeconnections.CfnConnection,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)

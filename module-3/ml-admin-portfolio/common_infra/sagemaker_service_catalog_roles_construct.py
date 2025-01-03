@@ -120,6 +120,27 @@ class SageMakerSCRoles(Construct):
                                 "arn:aws:sagemaker:*:*:image-version/*/*",
                             ],
                         ),
+                        iam.PolicyStatement(
+                            actions=[
+                                "s3:CreateBucket",
+                                "s3:DeleteBucket",
+                                "s3:GetBucketAcl",
+                                "s3:GetBucketCors",
+                                "s3:GetBucketLocation",
+                                "s3:ListAllMyBuckets",
+                                "s3:ListBucket",
+                                "s3:ListBucketMultipartUploads",
+                                "s3:PutBucketCors",
+                                "s3:AbortMultipartUpload",
+                                "s3:DeleteObject",
+                                "s3:GetObject",
+                                "s3:GetObjectVersion",
+                                "s3:PutObject"
+                            ],
+                            resources=[
+                                "arn:aws:s3:::mlops-*",
+                            ],
+                        ),
                         *s3_broad_policies,
                     ]
                 ),
@@ -273,7 +294,25 @@ class SageMakerSCRoles(Construct):
                 "MLOps": iam.PolicyDocument(
                     statements=[
                         iam.PolicyStatement(
-                            actions=["sagemaker:AddTags"],
+                            actions=[
+                                "sagemaker:AddTags",
+                                "iam:TagRole",
+                                "iam:AttachRolePolicy",
+                                "ssm:GetParameters",
+                                "lambda:PublishLayerVersion",
+                                "iam:CreateRole",
+                                "iam:PutRolePolicy",
+                                "codestar-connections:PassConnection",
+                                "iam:GetRole",
+                                "lambda:CreateFunction",
+                                "iam:PassRole", # lambda
+                                "lambda:TagResource",
+                                "lambda:Get*",
+                                "lambda:Invoke*",
+                                "ssm:PutParameter",
+                                "ssm:AddTagsToResource",
+                                "codebuild:BatchGetProjects"
+                                ],
                             resources=["*"],
                         ),
                         iam.PolicyStatement(

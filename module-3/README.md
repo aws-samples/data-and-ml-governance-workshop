@@ -13,7 +13,7 @@ This module helps the ML Platform Engineering Team setup shared services that ar
 
 ### Service Catalog Deployments
 
-To deploy the CodeCommit repositories and the pipelines associated with them follow the instructions in 
+To deploy the repositories and the pipelines associated with them follow the instructions in 
 
 - [ML Admin Portfolio Deployment](ml-admin-portfolio/README.md)
 - [Sagemaker Projects Portfolio Deployment](sagemaker-projects-portfolio/README.md)

@@ -26,9 +26,10 @@
       "aws",
       "aws-cn"
     ],
-    "MLWorkloadsOrgPath": "<add org path>",
-    "MLWorkloadsOUId": "<add OU ID>",
-    "MLDeploymentOrgPath": "<add org path>",
-    "MLDeploymentOUId": "<add OU ID>"
+    "MLWorkloadsOrgPath": "o-fc2zzlbqnq/r-oi63/ou-oi63-617b6xob/*",
+    "MLWorkloadsOUId": "ou-oi63-617b6xob",
+    "MLDeploymentOrgPath": "o-fc2zzlbqnq/r-oi63/ou-oi63-yvk7qrog/*",
+    "MLDeploymentOUId": "ou-oi63-yvk7qrog",
+    "RepoOwner": "example-org"
   }
 }

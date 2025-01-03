@@ -1,5 +1,5 @@
 {
-  "app": "python3 app.py",
+  "app": "python app.py",
   "watch": {
     "include": [
       "**"
@@ -26,9 +26,10 @@
       "aws",
       "aws-cn"
     ],
-    "MLWorkloadsOrgPath": "o-sweqe7y98b/r-feqg/ou-feqg-9sc6d403/*",
-    "MLWorkloadsOUId": "ou-feqg-9sc6d403",
+    "MLWorkloadsOrgPath": "o-fc2zzlbqnq/r-oi63/ou-oi63-617b6xob/*",
+    "MLWorkloadsOUId": "ou-oi63-617b6xob",
     "MLDeploymentOrgPath": "o-sweqe7y98b/r-feqg/ou-feqg-y4s1da88/*",
-    "MLDeploymentOUId": "ou-feqg-y4s1da88"
+    "MLDeploymentOUId": "ou-feqg-y4s1da88",
+    "RepoOwner": "example-org"
   }
 }
