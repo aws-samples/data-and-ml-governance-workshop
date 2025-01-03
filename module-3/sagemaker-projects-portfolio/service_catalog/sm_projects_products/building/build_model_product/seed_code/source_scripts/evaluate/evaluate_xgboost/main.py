@@ -36,8 +36,47 @@ logger.addHandler(logging.StreamHandler())
 if __name__ == "__main__":
     logger.debug("Starting evaluation.")
     model_path = "/opt/ml/processing/model/model.tar.gz"
-    with tarfile.open(model_path) as tar:
-        tar.extractall(path=".")
+
+    def safe_extract(tar_path: str, extract_path: str) -> None:
+		"""
+        Safely extract a tar file to the specified path with security checks.
+        
+        Args:
+            tar_path: Path to the tar file
+            extract_path: Path where files should be extracted
+        """
+        try:
+            # Ensure the extraction path exists
+            os.makedirs(extract_path, exist_ok=True)
+            
+            # Check if tar file exists and is a regular file
+            if not os.path.isfile(tar_path):
+                raise FileNotFoundError(f"Tar file not found: {tar_path}")
+                
+            # Open and validate the tar file
+            with tarfile.open(tar_path, 'r:*') as tar:
+                # Check for suspicious paths in the archive
+                for member in tar.getmembers():
+                    # Prevent path traversal attacks
+                    if member.name.startswith('/') or '..' in member.name:
+                        raise ValueError(f"Suspicious path in tar file: {member.name}")
+                    
+                    # Extract to the specified path
+                    member.name = os.path.basename(member.name)
+                    
+                # Extract files
+                tar.extractall(path=extract_path)
+                
+            logger.info(f"Successfully extracted {tar_path} to {extract_path}")
+            
+        except tarfile.TarError as e:
+            logger.error(f"Error extracting tar file: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during extraction: {e}")
+            raise
+
+    safe_extract(model_path, ".")  
 
     logger.debug("Loading xgboost model.")
     model = pickle.load(open("xgboost-model", "rb"))
