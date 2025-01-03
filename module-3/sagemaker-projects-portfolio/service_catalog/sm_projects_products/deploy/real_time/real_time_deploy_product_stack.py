@@ -21,9 +21,10 @@ import os
 import aws_cdk as cdk
 import aws_cdk.aws_servicecatalog as sc
 from aws_cdk import Aws, CfnParameter, Tags
-from aws_cdk import aws_codecommit as codecommit
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_s3_deployment as s3deploy
+from aws_cdk import aws_ssm as ssm
 from aws_cdk import custom_resources as cr
 from constructs import Construct
 from service_catalog.sm_projects_products.deploy.constructs.deploy_pipeline_construct import (
@@ -101,6 +102,28 @@ class MLOpsStack(sc.ProductStack):
             description="Id of prod account.",
         ).value_as_string
 
+        owner = cdk.CfnParameter(
+            self,
+            'RepoOwner',
+            type='String',
+            min_length=1,
+            max_length=50,
+            description='The owner or organization of your repository'
+        ).value_as_string
+
+        repository = cdk.CfnParameter(
+            self,
+            'Repo',
+            type='String',
+            min_length=1,
+            max_length=100,
+            description='The name of your repository'
+        ).value_as_string
+
+        connection_arn = ssm.StringParameter.from_string_parameter_name(
+            self, id="CodeConnectionArn", string_parameter_name="/codeconnection/arn"
+        ).string_value
+
         # x-region support postponed to alter iteration
         # deployment_region = cdk.CfnParameter(
         #     self,
@@ -133,20 +156,6 @@ class MLOpsStack(sc.ProductStack):
             deployment_region=cdk.Aws.REGION,  # Modify when x-region is enabled
         )
 
-        deploy_app_repository = codecommit.Repository(
-            self,
-            "DeployRepo",
-            repository_name=f"sagemaker-{project_name}-{construct_id}",
-            code=codecommit.Code.from_directory(
-                directory_path=f"{BASE_DIR}/seed_code",
-                branch="main",
-            ),
-        )
-        Tags.of(deploy_app_repository).add(key="sagemaker:project-id", value=project_id)
-        Tags.of(deploy_app_repository).add(
-            key="sagemaker:project-name", value=project_name
-        )
-
         # Pipeline artifact bucket with X-account resource policies
         pipeline_artifact_bucket = s3.Bucket(
             self,
@@ -161,6 +170,13 @@ class MLOpsStack(sc.ProductStack):
             identity=iam.AccountPrincipal(preprod_account)
         )
         pipeline_artifact_bucket.grant_read(identity=iam.AccountPrincipal(prod_account))
+
+        deployment = s3deploy.BucketDeployment(self, 'DeploySeedcode',
+                                  sources=[s3deploy.Source.asset(f'{BASE_DIR}/seed_code')],
+                                  destination_bucket=pipeline_artifact_bucket,
+                                  destination_key_prefix='seedcode',
+                                  extract=False
+        )
 
         ## Added from central_model_registry stack
         model_package_group_policy = iam.PolicyDocument(
@@ -247,9 +263,12 @@ class MLOpsStack(sc.ProductStack):
             project_id=project_id,
             pipeline_artifact_bucket=pipeline_artifact_bucket,
             model_package_group_name=model_package_group_name,
-            repository=deploy_app_repository,
+            owner=owner,
+            repository=repository,
+            connection_arn=connection_arn,
             preprod_account=preprod_account,
             prod_account=prod_account,
             deployment_region=cdk.Aws.REGION,
             create_model_event_rule=True,
+            deployment=deployment
         )

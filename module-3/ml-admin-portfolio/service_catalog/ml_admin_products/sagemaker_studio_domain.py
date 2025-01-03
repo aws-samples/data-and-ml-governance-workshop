@@ -17,7 +17,8 @@
 import os
 
 import aws_cdk as cdk
-from aws_cdk import CfnParameter
+from aws_cdk import CfnParameter, CfnTag
+from aws_cdk import aws_codeconnections as codeconnections
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sagemaker as sagemaker
@@ -88,6 +89,15 @@ class SagemakerStudioDomain(servicecatalog.ProductStack):
             cdk.CfnTag(key="anycompany:finance:cost-center", value=finance_cost_center),
         ]
 
+        connection = codeconnections.CfnConnection(self, 
+                                                   'DomainCodeConnection', 
+                                                   connection_name='codeconnection', 
+                                                   provider_type='GitHub', 
+                                                   tags=[CfnTag(
+                                                    key='sagemaker',
+                                                    value='true'
+        )])
+
         # Interface for template parameters
         self.template_options.metadata = {
             "AWS::CloudFormation::Interface": {
@@ -120,6 +130,8 @@ class SagemakerStudioDomain(servicecatalog.ProductStack):
                 ]
             }
         }
+
+        
 
         # Import variables from parameter store
         vpc_id = ssm.StringParameter.from_string_parameter_name(
@@ -154,6 +166,13 @@ class SagemakerStudioDomain(servicecatalog.ProductStack):
             tags=tags_list,
         )
 
+        ssm.StringParameter(
+            self,
+            'CodeConnectionParameter',
+            parameter_name="/codeconnection/arn",
+            string_value=connection.attr_connection_arn
+        )
+
         # create an S3 bucket and grant read/write privileges to all the roles associated with the domain
         studio_bucket = s3.Bucket(
             self,
@@ -165,6 +184,24 @@ class SagemakerStudioDomain(servicecatalog.ProductStack):
         studio_bucket.grant_read_write(sagemaker_roles.lead_data_scientist_role)
         studio_bucket.grant_read_write(sagemaker_roles.sagemaker_studio_role)
 
+        # custom_resource_role.add_to_policy([
+        #             iam.PolicyStatement(
+        #                 effect=iam.Effect.ALLOW,
+        #                 actions=[
+        #                     "sagemaker:EnableSagemakerServicecatalogPortfolio",
+        #                     "servicecatalog:ListAcceptedPortfolioShares",
+        #                     "servicecatalog:AssociatePrincipalWithPortfolio",
+        #                     "servicecatalog:AcceptPortfolioShare",
+        #                     "iam:GetRole",
+        #                 ],
+        #                 resources=["*"],
+        #             ),
+        #             iam.PolicyStatement(
+        #                 actions=["s3:Get*"],
+        #                 resources=["*"],
+        #                 effect=iam.Effect.ALLOW
+        #             )
+        # ])
         # enable projects for the domain
         _ = cr.AwsCustomResource(
             self,

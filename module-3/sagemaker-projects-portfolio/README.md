@@ -2,7 +2,7 @@
 
 this portfolio will contain the coorporate Sagemaker Projects products to be used by the ML teams to accelerate their ML models development while compliying with the organization´s best practices.
 
-## Prerriquistes
+## Prerequisites
 
 - We assume a role with required permissions and appropiate access has been set up to access the ML Shared Services Infra account from the AWS CLI. More information on this can be found on [Configure the AWS CLI to use AWS IAM Identity Center](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html) and [Use an IAM Role in the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html)
 
@@ -50,7 +50,7 @@ The AWS Cloud Development Kit (CDK) is written in python. Below is a list of pac
 
 ### Deploy the Pipeline Stack
 
-We will create the AWS CodeCommit repository that will host the CDK code for the Organization SageMaker Projects' templates and the AWS CodePipeline pipeline that will convert this code into Service Catalog products to be shared with Sandbox accounts.
+We will create the GitHub repository that will host the CDK code for the Organization SageMaker Projects' templates and the AWS CodePipeline pipeline that will convert this code into Service Catalog products to be shared with Sandbox accounts.
 
 #### Step 1: Bootstrap the Infrastructure of the Shared Services account
 
@@ -94,7 +94,7 @@ cdk bootstrap
 
 Now we are going to set up the required resources in our ML Shared Services Account. For that follow this steps:
 
-Deploy the stack with the CodeCommit repostory and the corresponding pipeline.
+Deploy the stack with the CodeConnection and the corresponding pipeline.
 
 ```bash
 cdk deploy --all --require-approval never
@@ -110,16 +110,18 @@ First, navigate to the [AWS CloudFormation console](https://us-east-1.console.aw
 
 Then click "Stacks" on the CloudFormation page.
 
-You should see a stack named "SmProjectsServiceCatalogPipeline". This is the stack that created resources such as CodeCommit repository, CodePipeline, S3 buckets, and etc.
+You should see a stack named "SmProjectsServiceCatalogPipeline". This is the stack that created resources such as CodeConnections Connection, CodePipeline, S3 buckets, and etc.
 
 
-Let's check out the resources created. Take the CodeCommit repository as an example. 
+Let's check out the resources created. Take the CodeConnection connection as an example. 
 
-Type "CodeCommit" in the search bar, and then click "CodeCommit" in the dropdown menu.
+Type "Service Catalog" in the search bar, and then click "Service Catalog" in the dropdown menu. Then select "AWS CodeStar Connections" from the left sidebar.
 
-You can see there's a repository named "sm-projects-service-catalog-repo". If you click the repository name, you will notice the repository is currently empty. Soon we will push code to it.
+You can see there's a connection named "codeconnection-service-catalog". If you click the connection, you will notice that we need to connect it to our GitHub to allow us to integrate it with our pipelines and start pushing code. Click the 'Update pending connection' to integrate with your GitHub account.
 
-![CodeCommit Repo](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-6.png)
+![CodeConnection](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-13.png)
+
+Once that is done, you need to create empty GitHub repositories to start pushing code to. For example, you can create a repository called "sm-projects-service-catalog-repo". Every project you deploy will need a repository created in GitHub beforehand.
 
 We recommend to create a separate folder for the differnt repositories that will be created in the platform. To do that, get out of the cloned repository and create a parallel folder called platform-repositories
 
@@ -132,12 +134,12 @@ Let´s clone and fill the empty created repository
 
 ```bash
 cd platform-repositories
-git clone codecommit://sm-projects-service-catalog-repo
+git clone https://github.com/example-org/sm-projects-service-catalog-repo.git
 cd sm-projects-service-catalog-repo
 cp -aR ../../ml-platform-shared-services/module-3/sagemaker-projects-portfolio/. .
 ```
 
-Let's push the code to the CodeCommit Repository to create the Service Catalog portfolio. Run the code below.
+Let's push the code to the GitHub Repository to create the Service Catalog portfolio. Run the code below.
 
 ```bash
 git add .
@@ -145,7 +147,7 @@ git commit -m "Initial commit"
 git push -u origin main
 ```
 
-Once it is pushed, let's go back to the CodeCommit repository we created earlier. Now it's no longer empty. Once the code is pushed to the code repository, it triggers the CodePipeline run to build and deploy artifacts to the Service Catalog. Click Pipelines -> Pipeline to check it out. You will see a pipeline named "cdk-service-catalog-pipeline". Click on the pipeline name to check out the steps of it. For more information, read [AWS CodePipeline](https://aws.amazon.com/codepipeline/?nc=sn&loc=1).
+Once it is pushed, let's go back to the GitHub repository we created earlier. Now it's no longer empty. Once the code is pushed to the code repository, it triggers the CodePipeline run to build and deploy artifacts to the Service Catalog. Click Pipelines -> Pipeline to check it out. You will see a pipeline named "cdk-service-catalog-pipeline". Click on the pipeline name to check out the steps of it. For more information, read [AWS CodePipeline](https://aws.amazon.com/codepipeline/?nc=sn&loc=1).
 
 ![CodePipeline](diagrams/setup-ml-engineering-service-catalog-portfolios/setup-ml-engineering-service-catalog-portfolios-7.png)
 

@@ -19,12 +19,13 @@ import os
 
 import aws_cdk
 from aws_cdk import Aws, Tags
-from aws_cdk import aws_codecommit as codecommit
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_kms as kms
 from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_s3_deployment as s3deploy
 from aws_cdk import aws_sagemaker as sagemaker
 from aws_cdk import aws_servicecatalog as sc
+from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 from service_catalog.sm_projects_products.building.constructs.build_pipeline_construct import (
     BuildPipelineConstruct,
@@ -86,20 +87,32 @@ class MLOpsStack(sc.ProductStack):
             description="Your central feature store feature group name for data prep",
         ).value_as_string
 
+        owner = aws_cdk.CfnParameter(
+            self,
+            'RepoOwner',
+            type='String',
+            min_length=1,
+            max_length=50,
+            description='The owner or organization of your repository'
+        ).value_as_string
+
+        repository = aws_cdk.CfnParameter(
+            self,
+            'Repo',
+            type='String',
+            min_length=1,
+            max_length=100,
+            description='The name of your repository'
+        ).value_as_string
+
+        connection_arn = ssm.StringParameter.from_string_parameter_name(
+            self, id="CodeConnectionArn", string_parameter_name="/codeconnection/arn"
+        ).string_value
+
         tooling_account = os.getenv("CDK_DEFAULT_ACCOUNT")
 
         Tags.of(self).add("sagemaker:project-id", project_id)
         Tags.of(self).add("sagemaker:project-name", project_name)
-
-        build_app_repository = codecommit.Repository(
-            self,
-            "BuildRepo",
-            repository_name=f"sagemaker-{project_name}-{construct_id}",
-            code=codecommit.Code.from_directory(
-                directory_path=f"{BASE_DIR}/seed_code",
-                branch="main",
-            ),
-        )
 
         # create kms key to be used by the assets bucket
         kms_key = kms.Key(
@@ -178,6 +191,13 @@ class MLOpsStack(sc.ProductStack):
             )
         )
 
+        deployment = s3deploy.BucketDeployment(self, 'DeploySeedcode',
+                                  sources=[s3deploy.Source.asset(f'{BASE_DIR}/seed_code')],
+                                  destination_bucket=s3_artifact,
+                                  destination_key_prefix='seedcode',
+                                  extract=False
+        )
+
         model_package_group_name = f"{project_name}-{project_id}"
 
         # cross account model registry resource policy
@@ -252,6 +272,7 @@ class MLOpsStack(sc.ProductStack):
             enforce_ssl=True,
         )
 
+
         BuildPipelineConstruct(
             self,
             "build",
@@ -259,7 +280,20 @@ class MLOpsStack(sc.ProductStack):
             project_id=project_id,
             pipeline_artifact_bucket=pipeline_artifact_bucket,
             model_package_group_name=model_package_group_name,
-            repository=build_app_repository,
+            owner=owner,
+            repository=repository,
+            connection_arn=connection_arn,
             s3_artifact=s3_artifact,
-            build_env={"FeatureGroupName": fg_name},
+            deployment=deployment
         )
+        # BuildPipelineConstruct(
+        #     self,
+        #     "build",
+        #     project_name=project_name,
+        #     project_id=project_id,
+        #     pipeline_artifact_bucket=pipeline_artifact_bucket,
+        #     model_package_group_name=model_package_group_name,
+        #     repository=build_app_repository,
+        #     s3_artifact=s3_artifact,
+        #     build_env={"FeatureGroupName": fg_name},
+        # )

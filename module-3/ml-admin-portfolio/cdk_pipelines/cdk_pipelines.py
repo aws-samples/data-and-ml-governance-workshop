@@ -1,5 +1,5 @@
 from aws_cdk import Stack, Stage
-from aws_cdk import aws_codecommit as codecommit
+from aws_cdk import aws_codeconnections as codeconnections
 from aws_cdk import pipelines as pipelines
 from common_infra.common_infra_stack import CommonInfraStack
 from constructs import Construct
@@ -44,12 +44,9 @@ class CdkPipelineStack(Stack):
 
         hub_account = self.node.try_get_context("hub_account")
         hub_region = self.node.try_get_context("region")
-        repo = codecommit.Repository(
-            self,
-            "Repo",
-            repository_name="ml-admin-service-catalog-repo",
-            description="CDK Code with ML Admins Service Catalog products",
-        )
+        repo_owner = self.node.try_get_context("RepoOwner")
+
+        connection = codeconnections.CfnConnection(self, 'Connection', connection_name='codeconnection', provider_type='GitHub')
 
         pipeline = pipelines.CodePipeline(
             self,
@@ -57,7 +54,7 @@ class CdkPipelineStack(Stack):
             pipeline_name="ml-admin-service-catalog-pipeline",
             synth=pipelines.ShellStep(
                 "Synth",
-                input=pipelines.CodePipelineSource.code_commit(repo, "main"),
+                input=pipelines.CodePipelineSource.connection(f'{repo_owner}/ml-admin-service-catalog-repo', 'main', connection_arn=connection.attr_connection_arn),
                 commands=[
                     "npm install -g aws-cdk && pip install -r requirements.txt",
                     "cdk synth",

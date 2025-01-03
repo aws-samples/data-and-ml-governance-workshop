@@ -33,7 +33,7 @@ The infrastructure mentioned in this repository should be deployed in the Landin
 
 The architecture performs the following steps:
 
-1. The CodeCommit repository hosts the CDK template for the pipeline and the different templates that will be converted into Service Catalog products for account bootstrapping.
+1. The repository hosts the CDK template for the pipeline and the different templates that will be converted into Service Catalog products for account bootstrapping. This is connected to AWS services via CodeConnection
 2. Whenever a change happens in the repository the pipeline is triggered and it performs the following steps:
 
      - Checks if any changes have been made to the pipeline itself.
@@ -48,7 +48,7 @@ The architecture performs the following steps:
 
 The pipeline stack deploys all the resources shown in the Account Hub in the above diagram:
 
-1. Code Commit repository. This repository will host this same code and code updates in it will trigger the pipeline.
+1. CodeConnection with repository. This repository will host this same code and code updates in it will trigger the pipeline.
 2. CodePipeline pipeline with the steps to convert the CDK resources in this repository into Service Catalog Products.
 
 ### Service Catalog Stacks
@@ -143,20 +143,21 @@ For more information read the [AWS CDK documentation on Bootstrapping](https://d
 
 Now we are going to set up the required resources in our Infrastructure Shared Services Account. For that follow this steps:
 
-1. Deploy the stack with the CodeCommit repository and the corresponding pipeline
+1. Deploy the stack with the CodeConnection and the corresponding pipeline
 
     ```bash
     cdk deploy --all --require-approval never
     ```
 
-2. Lets create the initial commit for our repository
+2. We create an empty GitHub repository to host our code
+
+3. Lets create the initial commit for our repository
 
     ```console
-    git init
-    git remote add codecommit codecommit::us-east-1://ml-infra-service-catalog-repo
+    git clone https://github.com/example-org/ml-infra-service-catalog-repo.git
     git add .
     git commit -m "Initial commit"
-    git push -u codecommit main
+    git push -u origin main
     ```
 
 ### Clean-up
