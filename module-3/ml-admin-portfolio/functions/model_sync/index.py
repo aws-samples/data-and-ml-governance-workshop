@@ -92,7 +92,7 @@ def check_pkg_already_exists(
         target_model_package_group (str): The name of the target model package group.
 
     Returns:
-        Boolean: True if a package with the same OriginalARN metadata property
+        boolean: True if a package with the same OriginalARN metadata property
             already exists in the target group, False otherwise.
     """
 
