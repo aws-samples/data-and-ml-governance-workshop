@@ -1,7 +1,6 @@
 import json
 import os
-from typing import Any, Dict, List
-from xmlrpc.client import Boolean
+from typing import Any, List
 
 import boto3
 from aws_lambda_powertools import Logger
@@ -49,12 +48,12 @@ exclusion_list = ["ImageDigest"]
 
 
 def upload_and_replace(
-    data: Dict | List | str | Any, destination_bucket_name: str, destination_prefix: str
+    data: dict | List | str | Any, destination_bucket_name: str, destination_prefix: str
 ):
     """Recursively scan a structure to upload data to an S3 bucket, replacing S3 URLs.
 
     Args:
-        data (Dict|List|str|Any): The data to upload. Can be a dict, list,
+        data (dict|List|str|Any): The data to upload. Can be a dict, list,
             string or other object.
         destination_bucket_name (str): The name of the destination S3 bucket.
         destination_prefix (str): The prefix path within the bucket.
@@ -85,7 +84,7 @@ def upload_and_replace(
 
 def check_pkg_already_exists(
     source_model_package_arn: str, target_model_package_group: str
-) -> Boolean:
+) -> bool:
     """Check if a model package already exists in a target model package group.
 
     Args:
@@ -155,9 +154,11 @@ def lambda_handler(event, context: LambdaContext):
 
     # scan the source model package for artifacts to upload to S3
     new_model_package = upload_and_replace(
-        model_package, destination_bucket_name, destination_prefix  # type: ignore
+        model_package,
+        destination_bucket_name,
+        destination_prefix,  # type: ignore
     )
-    assert isinstance(new_model_package, Dict)  # fix type linting errors
+    assert isinstance(new_model_package, dict)  # fix type linting errors
 
     try:
         create_model_package_input = dict(
@@ -176,7 +177,7 @@ def lambda_handler(event, context: LambdaContext):
                 "ModelMetrics": model_metrics,
             }
 
-        response = sagemaker_client.create_model_package(**create_model_package_input) # type: ignore
+        response = sagemaker_client.create_model_package(**create_model_package_input)  # type: ignore
         package_arn = response["ModelPackageArn"]
 
     except ClientError as e:
